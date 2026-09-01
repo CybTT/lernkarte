@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <title>LernKarte</title>
+    <style>
+      body {
+        width: 240px;
+        margin: 0;
+        padding: 16px;
+        font: 14px system-ui, sans-serif;
+        background: #121212;
+        color: #f2f2f2;
+      }
+      h1 {
+        font-size: 15px;
+        margin: 0 0 12px;
+      }
+      p {
+        margin: 0 0 12px;
+        color: #b3b3b3;
+      }
+      button,
+      a.button {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px 12px;
+        border: none;
+        border-radius: 8px;
+        background: #7c4dff;
+        color: white;
+        font: inherit;
+        text-align: center;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      button.secondary {
+        background: #2a2a2a;
+        color: #f2f2f2;
+        margin-top: 8px;
+      }
+      .status {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 12px;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+      }
+      .dot.on {
+        background: #2ecc71;
+      }
+      .dot.off {
+        background: #e74c3c;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>LernKarte</h1>
+    <div id="content">Yükleniyor…</div>
+    <script type="module" src="dist/popup.js"></script>
+  </body>
+</html>
