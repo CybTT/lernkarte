@@ -17,6 +17,8 @@ export const WRONG_EASE_PENALTY = 0.2;
 export const CORRECT_EASE_GAIN = 0.05;
 
 export const QUESTION_WEIGHTS: Record<QuestionType, number> = {
+  // Self-assessed recognition — same evidence tier as a 4-option pick.
+  flashcard: 0.5,
   match: 0.5,
   multiple_choice: 0.5,
   cloze: 1.0,

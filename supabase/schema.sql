@@ -81,7 +81,7 @@ create table if not exists reviews (
   user_id         uuid not null references profiles (id) on delete cascade,
   created_at      timestamptz not null default now(),
   question_type   text not null check (
-    question_type in ('match', 'cloze', 'typing', 'translate', 'multiple_choice')
+    question_type in ('match', 'cloze', 'typing', 'translate', 'multiple_choice', 'flashcard')
   ),
   correct         boolean not null,
   response_ms     int,
@@ -93,11 +93,38 @@ create index if not exists reviews_word_id_idx on reviews (word_id);
 create index if not exists reviews_user_id_idx on reviews (user_id);
 
 -- ============================================================
+-- dictionary_pool: shared, read-only A1-B1 reference wordlist.
+-- Source: Goethe-Institut A1/A2/B1 Wortliste. Used only to draw
+-- multiple-choice distractors — separate from each user's `words`.
+-- ============================================================
+create table if not exists dictionary_pool (
+  id              uuid primary key default gen_random_uuid(),
+  created_at      timestamptz not null default now(),
+  term            text not null unique,
+  article         text check (article in ('der', 'die', 'das')),
+  plural_hint     text,
+  part_of_speech  text not null check (
+    part_of_speech in ('noun', 'verb', 'adjective', 'other')
+  ),
+  level           text not null check (level in ('A1', 'A2', 'B1')),
+  example_de      text
+);
+
+create index if not exists dictionary_pool_pos_level_idx
+  on dictionary_pool (part_of_speech, level);
+
+-- ============================================================
 -- Row Level Security
 -- ============================================================
-alter table profiles enable row level security;
-alter table words    enable row level security;
-alter table reviews  enable row level security;
+alter table profiles        enable row level security;
+alter table words           enable row level security;
+alter table reviews         enable row level security;
+alter table dictionary_pool enable row level security;
+
+-- Shared reference data: every signed-in user may read it, nobody may
+-- write it. The seed script uses the service role, which bypasses RLS.
+create policy "dictionary_pool: authenticated read" on dictionary_pool
+  for select to authenticated using (true);
 
 create policy "profiles: owner select" on profiles
   for select using (id = auth.uid());

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import type { StudySessionItem } from "@/lib/types";
+import type { StudyItem } from "@/lib/types";
 import { submitAnswer } from "@/app/(app)/study/actions";
 import { StudyCard, type StudyCardAnswer } from "@/components/StudyCard";
 import { WordFullCard } from "@/components/WordFullCard";
@@ -11,27 +11,15 @@ import { MasteryBar } from "@/components/MasteryBar";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 
-interface DistractorWord {
-  id: string;
-  term: string;
-  meaning_tr: string | null;
-}
-
 interface FeedbackState {
   correct: boolean;
-  word: StudySessionItem["word"];
+  word: StudyItem["word"];
   masteryBefore: number;
   masteryAfter: number;
   gradeFeedback?: string;
 }
 
-export function StudySession({
-  items,
-  distractorPool,
-}: {
-  items: StudySessionItem[];
-  distractorPool: DistractorWord[];
-}) {
+export function StudySession({ items }: { items: StudyItem[] }) {
   const [index, setIndex] = useState(0);
   const [feedback, setFeedback] = useState<FeedbackState | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -140,12 +128,7 @@ export function StudySession({
       <div className="flex flex-1 items-center justify-center">
         {!feedback ? (
           <div className="w-full">
-            <StudyCard
-              item={item}
-              distractorPool={distractorPool}
-              disabled={submitting}
-              onAnswer={handleAnswer}
-            />
+            <StudyCard item={item} disabled={submitting} onAnswer={handleAnswer} />
           </div>
         ) : (
           <div className="flex w-full flex-col gap-4">
