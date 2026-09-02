@@ -40,6 +40,12 @@ create table if not exists words (
   term              text not null,
   source            text not null default 'manual' check (source in ('manual', 'extension')),
   context_sentence  text,
+  -- What the user actually typed, kept only when enrichment rewrote `term`
+  -- (e.g. they typed the Turkish "araba" and we stored "Auto").
+  original_input    text,
+  -- Set when enrichment could not identify a German word, so the row is
+  -- flagged in the UI instead of being filled with invented data.
+  needs_review      boolean not null default false,
 
   -- AI-enriched fields
   enriched          boolean not null default false,
@@ -48,6 +54,10 @@ create table if not exists words (
   part_of_speech    text,
   meaning_tr        text,
   meaning_en        text,
+  -- Additional Turkish meanings beyond the primary `meaning_tr`.
+  meanings_tr       text[],
+  -- Short Turkish note on how/where the word is used in daily life.
+  usage_note        text,
   ipa               text,
   example_de        text,
   example_tr        text,
@@ -71,6 +81,7 @@ create table if not exists words (
 
 create index if not exists words_user_next_review_idx on words (user_id, next_review);
 create index if not exists words_user_leech_idx on words (user_id, is_leech);
+create index if not exists words_user_needs_review_idx on words (user_id, needs_review);
 
 -- ============================================================
 -- reviews

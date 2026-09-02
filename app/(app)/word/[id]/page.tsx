@@ -4,6 +4,7 @@ import type { Review, Word } from "@/lib/types";
 import { ArticleBadge } from "@/components/ArticleBadge";
 import { SpeakButton } from "@/components/SpeakButton";
 import { MasteryBar } from "@/components/MasteryBar";
+import { MeaningWithVariants } from "@/components/MeaningWithVariants";
 import { WordDetailActions } from "@/components/WordDetailActions";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -44,10 +45,27 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
         <WordDetailActions wordId={w.id} />
       </div>
 
-      {!w.enriched && <Badge variant="outline">işlenmemiş</Badge>}
+      <div className="flex flex-wrap items-center gap-2">
+        {w.needs_review && <Badge variant="destructive">tanınmadı</Badge>}
+        {!w.enriched && !w.needs_review && <Badge variant="outline">işlenmemiş</Badge>}
+        {w.original_input && (
+          <span className="text-xs text-muted-foreground">
+            girdin: &ldquo;{w.original_input}&rdquo; → {w.term}
+          </span>
+        )}
+      </div>
 
       <Card>
         <CardContent className="flex flex-col gap-3 py-4">
+          {/* Article -> word -> pronunciation -> meaning -> usage, matching the dictionary row. */}
+          <div className="flex flex-col gap-1">
+            {w.ipa && <p className="font-mono text-sm text-muted-foreground">[{w.ipa}]</p>}
+            <p className="text-lg">
+              <MeaningWithVariants meaning={w.meaning_tr} others={w.meanings_tr} />
+            </p>
+            {w.usage_note && <p className="text-sm text-muted-foreground">{w.usage_note}</p>}
+          </div>
+
           <div className="flex items-center gap-2">
             <MasteryBar mastery={w.mastery} className="flex-1" />
             <span className="text-sm text-muted-foreground">{Math.round(w.mastery)}/100</span>
@@ -55,10 +73,7 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
           <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
             <Field label="Çoğul" value={w.plural} />
             <Field label="Tür" value={w.part_of_speech} />
-            <Field label="IPA" value={w.ipa ? `[${w.ipa}]` : null} />
-            <Field label="Türkçe" value={w.meaning_tr} />
             <Field label="İngilizce" value={w.meaning_en} />
-            <Field label="Tema" value={w.theme} />
             <Field label="Präteritum" value={w.praeteritum} />
             <Field label="Perfekt" value={w.perfekt} />
             <Field label="Rektion" value={w.rektion} />

@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { MasteryBar } from "@/components/MasteryBar";
 import { ArticleBadge } from "@/components/ArticleBadge";
 import { AddWordForm } from "@/components/AddWordForm";
+import { MeaningWithVariants } from "@/components/MeaningWithVariants";
 
 const LEARNED_THRESHOLD = 85;
 
@@ -22,7 +23,12 @@ function WordRow({ word }: { word: Word }) {
         <Link href={`/word/${word.id}`} className="hover:underline">
           {word.term}
         </Link>
-        {!word.enriched && (
+        {word.needs_review && (
+          <Badge variant="destructive" className="ml-2 align-middle text-xs">
+            tanınmadı
+          </Badge>
+        )}
+        {!word.enriched && !word.needs_review && (
           <Badge variant="outline" className="ml-2 align-middle text-xs">
             işlenmemiş
           </Badge>
@@ -33,14 +39,17 @@ function WordRow({ word }: { word: Word }) {
           </Badge>
         )}
       </TableCell>
-      <TableCell className="text-muted-foreground hidden sm:table-cell">
-        {word.meaning_tr ?? "—"}
+      <TableCell className="hidden font-mono text-xs text-muted-foreground sm:table-cell">
+        {word.ipa ? `[${word.ipa}]` : "—"}
+      </TableCell>
+      <TableCell className="text-muted-foreground">
+        <MeaningWithVariants meaning={word.meaning_tr} others={word.meanings_tr} />
       </TableCell>
       <TableCell className="w-32">
         <MasteryBar mastery={word.mastery} />
       </TableCell>
-      <TableCell className="hidden md:table-cell">
-        {word.theme && <Badge variant="secondary">{word.theme}</Badge>}
+      <TableCell className="hidden max-w-xs text-xs text-muted-foreground lg:table-cell">
+        {word.usage_note ?? "—"}
       </TableCell>
     </TableRow>
   );
@@ -56,9 +65,10 @@ function WordTable({ words }: { words: Word[] }) {
         <TableRow>
           <TableHead className="w-0">Artikel</TableHead>
           <TableHead>Kelime</TableHead>
-          <TableHead className="hidden sm:table-cell">Anlam</TableHead>
+          <TableHead className="hidden sm:table-cell">Okunuş</TableHead>
+          <TableHead>Anlam</TableHead>
           <TableHead>Ustalık</TableHead>
-          <TableHead className="hidden md:table-cell">Tema</TableHead>
+          <TableHead className="hidden lg:table-cell">Kullanım</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>

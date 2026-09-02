@@ -28,6 +28,10 @@ export interface Word {
   term: string;
   source: WordSource;
   context_sentence: string | null;
+  /** What the user typed, when enrichment rewrote `term` (e.g. "araba" -> "Auto"). */
+  original_input: string | null;
+  /** Enrichment couldn't identify a German word; flagged in the UI. */
+  needs_review: boolean;
 
   enriched: boolean;
   article: Article | null;
@@ -35,6 +39,10 @@ export interface Word {
   part_of_speech: PartOfSpeech | null;
   meaning_tr: string | null;
   meaning_en: string | null;
+  /** Additional Turkish meanings beyond the primary one. */
+  meanings_tr: string[] | null;
+  /** Short Turkish note on how/where the word is used day to day. */
+  usage_note: string | null;
   ipa: string | null;
   example_de: string | null;
   example_tr: string | null;
@@ -91,12 +99,23 @@ export interface StudyItem extends StudySessionItem {
   options?: string[];
 }
 
+/**
+ * Whether the submitted input was already German, was translated into German,
+ * or couldn't be identified as a word at all.
+ */
+export type InputStatus = "german" | "translated" | "unknown";
+
 export interface EnrichmentResult {
+  /** Always a single clean German lemma — never an explanation or parenthetical. */
+  term: string;
+  input_status: InputStatus;
   article: Article | null;
   plural: string | null;
   part_of_speech: PartOfSpeech;
   meaning_tr: string;
   meaning_en: string;
+  meanings_tr: string[];
+  usage_note: string;
   ipa: string;
   example_de: string;
   example_tr: string;

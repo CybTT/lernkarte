@@ -62,12 +62,22 @@ export function AddWordForm() {
       },
       body: JSON.stringify({ word_ids: [inserted.id] }),
     })
-      .then((res) => {
-        if (res.ok) {
-          toast.success(`"${cleaned}" zenginleştirildi.`);
-          router.refresh();
-        } else {
+      .then(async (res) => {
+        if (!res.ok) {
           toast.error(`"${cleaned}" zenginleştirilemedi.`);
+          return;
+        }
+        const data = await res.json().catch(() => null);
+        const report = data?.results?.[0];
+        router.refresh();
+
+        if (report?.needs_review) {
+          toast.error(`"${cleaned}" bir Almanca kelime olarak tanınmadı — sözlükten düzeltebilirsin.`);
+        } else if (report?.corrected) {
+          // The user typed Turkish (or an inflected form); say what we stored.
+          toast.success(`"${cleaned}" → ${report.term} olarak kaydedildi.`);
+        } else {
+          toast.success(`"${report?.term ?? cleaned}" zenginleştirildi.`);
         }
       })
       .catch(() => toast.error(`"${cleaned}" zenginleştirilemedi.`));
