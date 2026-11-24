@@ -22,18 +22,26 @@ export function WordDetailActions({ wordId }: { wordId: string }) {
 
   async function handleReenrich() {
     setBusy(true);
-    const authHeader = await withAuthHeader();
-    const res = await fetch("/api/enrich", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...authHeader },
-      body: JSON.stringify({ word_ids: [wordId], force: true }),
-    });
-    setBusy(false);
-    if (res.ok) {
+    let res: Response | null = null;
+    try {
+      const authHeader = await withAuthHeader();
+      res = await fetch("/api/enrich", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeader },
+        body: JSON.stringify({ word_ids: [wordId], force: true }),
+      });
+    } catch {
+      res = null;
+    } finally {
+      setBusy(false);
+    }
+    if (res?.ok) {
       toast.success("Kelime yeniden zenginleştirildi.");
       router.refresh();
+    } else if (!res) {
+      toast.error("Bağlantı koptu, tekrar dene.");
     } else {
-      toast.error("Zenginleştirme başarısız oldu.");
+      toast.error("Zenginleştirme başarısız oldu, tekrar dene.");
     }
   }
 

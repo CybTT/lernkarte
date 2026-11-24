@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getRouteSupabase } from "@/lib/supabase/route";
 import { generateSentence } from "@/lib/anthropic";
+import { aiUnavailable } from "@/lib/aiResponse";
 
 export async function POST(request: NextRequest) {
   const { supabase, user } = await getRouteSupabase(request);
@@ -9,8 +10,8 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json().catch(() => null);
-  const targetWord: string | undefined = body?.target_word;
-  if (!targetWord) {
+  const targetWord: unknown = body?.target_word;
+  if (typeof targetWord !== "string" || !targetWord || targetWord.length > 100) {
     return NextResponse.json({ error: "target_word is required" }, { status: 400 });
   }
 
@@ -28,6 +29,6 @@ export async function POST(request: NextRequest) {
     );
     return NextResponse.json(result);
   } catch (err) {
-    return NextResponse.json({ error: (err as Error).message }, { status: 502 });
+    return aiUnavailable(err, "sentence");
   }
 }

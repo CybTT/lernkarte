@@ -3,12 +3,17 @@
 import { useEffect, useState } from "react";
 import type { StudyItem, Word } from "@/lib/types";
 import { answersMatch, makeCloze } from "@/lib/germanMatch";
+import { requestGrade, type GradeOutcome } from "@/lib/grading";
 import { ArticleBadge } from "@/components/ArticleBadge";
 import { SpeakButton } from "@/components/SpeakButton";
 
 export interface StudyCardAnswer {
   correct: boolean;
-  pendingGrade?: Promise<{ correct: boolean; feedback: string }>;
+  /**
+   * For free-text answers the server decides; `correct` is ignored then.
+   * A function (not a promise) so the session can retry the same answer.
+   */
+  grade?: () => Promise<GradeOutcome>;
 }
 
 interface StudyCardProps {
@@ -86,9 +91,9 @@ function FlashcardQuestion({ item, disabled, onAnswer }: StudyCardProps) {
 
   return (
     <div className="polkadot-card flex flex-col gap-8 p-8 sm:p-10 rounded-2xl w-full max-w-xl mx-auto text-center">
-      <div className="flex items-center justify-center gap-3 text-4xl sm:text-5xl font-display font-bold text-white">
+      <div className="flex flex-wrap items-center justify-center gap-3 text-4xl sm:text-5xl font-display font-bold text-white">
         <ArticleBadge article={word.article} className="text-2xl sm:text-3xl" />
-        <span>{word.term}</span>
+        <span className="min-w-0 [overflow-wrap:anywhere]">{word.term}</span>
         <SpeakButton text={word.term} />
       </div>
 
@@ -238,16 +243,8 @@ function TranslateQuestion({ item, disabled, onAnswer }: StudyCardProps) {
       onAnswer({ correct: answersMatch(value, word.term) });
       return;
     }
-    const pendingGrade = fetch("/api/grade", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        term: word.term,
-        expected_meaning: word.example_de,
-        answer: value,
-      }),
-    }).then((r) => r.json());
-    onAnswer({ correct: false, pendingGrade });
+    const expected = word.example_de;
+    onAnswer({ correct: false, grade: () => requestGrade(word.term, expected, value) });
   }
 
   return (

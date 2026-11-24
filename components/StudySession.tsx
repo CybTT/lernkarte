@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { StudyItem } from "@/lib/types";
+import type { GradeOutcome } from "@/lib/grading";
 import { submitAnswer } from "@/app/(app)/study/actions";
 import { StudyCard, type StudyCardAnswer } from "@/components/StudyCard";
 import { WordFullCard } from "@/components/WordFullCard";
@@ -18,12 +19,25 @@ interface FeedbackState {
   gradeFeedback?: string;
 }
 
+/** Something went wrong before the answer could be recorded. Nothing was saved. */
+interface ProblemState {
+  message: string;
+  /** Re-runs the failed step with the same answer; absent when retrying can't help. */
+  retry?: () => void;
+}
+
+const GRADE_FAILED_MESSAGE = "Cevabın değerlendirilemedi, tekrar dene.";
+const SAVE_FAILED_MESSAGE =
+  "Bağlantı koptu, cevabın kaydedilemedi. İnternet bağlantını kontrol edip tekrar dene.";
+
 export function StudySession({ items }: { items: StudyItem[] }) {
   const [index, setIndex] = useState(0);
   const [feedback, setFeedback] = useState<FeedbackState | null>(null);
+  const [problem, setProblem] = useState<ProblemState | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [correctCount, setCorrectCount] = useState(0);
+  const [answeredCount, setAnsweredCount] = useState(0);
   const startRef = useRef(0);
   const router = useRouter();
 
@@ -33,24 +47,10 @@ export function StudySession({ items }: { items: StudyItem[] }) {
     startRef.current = Date.now();
   }, [index]);
 
-  async function handleAnswer(answer: StudyCardAnswer) {
+  /** Records a known verdict. On failure, offers to retry the save itself. */
+  async function record(correct: boolean, responseMs: number, gradeFeedback?: string) {
     setSubmitting(true);
-    let correct = answer.correct;
-    let gradeFeedback: string | undefined;
-
-    if (answer.pendingGrade) {
-      try {
-        const graded = await answer.pendingGrade;
-        correct = graded.correct;
-        gradeFeedback = graded.feedback;
-      } catch {
-        correct = false;
-        gradeFeedback = "Değerlendirme başarısız oldu.";
-      }
-    }
-
-    const responseMs = Date.now() - startRef.current;
-
+    setProblem(null);
     try {
       const result = await submitAnswer({
         wordId: item.word.id,
@@ -59,6 +59,7 @@ export function StudySession({ items }: { items: StudyItem[] }) {
         responseMs,
       });
       if (correct) setCorrectCount((c) => c + 1);
+      setAnsweredCount((c) => c + 1);
       setFeedback({
         correct,
         word: result.word,
@@ -66,9 +67,51 @@ export function StudySession({ items }: { items: StudyItem[] }) {
         masteryAfter: result.masteryAfter,
         gradeFeedback,
       });
+    } catch {
+      setProblem({
+        message: SAVE_FAILED_MESSAGE,
+        retry: () => void record(correct, responseMs, gradeFeedback),
+      });
     } finally {
       setSubmitting(false);
     }
+  }
+
+  /**
+   * Asks the server to grade a free-text answer. If grading fails the answer
+   * is NOT counted as wrong and the word is not demoted — the learner is told
+   * it couldn't be graded and can retry or skip.
+   */
+  async function gradeThenRecord(grade: () => Promise<GradeOutcome>, responseMs: number) {
+    setSubmitting(true);
+    setProblem(null);
+    const outcome = await grade();
+    setSubmitting(false);
+
+    if (outcome.status === "ok") {
+      await record(outcome.correct, responseMs, outcome.feedback || undefined);
+    } else {
+      setProblem({
+        message: GRADE_FAILED_MESSAGE,
+        retry: () => void gradeThenRecord(grade, responseMs),
+      });
+    }
+  }
+
+  function handleAnswer(answer: StudyCardAnswer) {
+    // Time to answer, measured before any server round-trip.
+    const responseMs = Date.now() - startRef.current;
+    if (answer.grade) {
+      void gradeThenRecord(answer.grade, responseMs);
+    } else {
+      void record(answer.correct, responseMs);
+    }
+  }
+
+  /** Moves on without recording anything for the current word. */
+  function handleSkip() {
+    setProblem(null);
+    handleNext();
   }
 
   function handleNext() {
@@ -77,6 +120,7 @@ export function StudySession({ items }: { items: StudyItem[] }) {
     } else {
       setIndex((i) => i + 1);
       setFeedback(null);
+      setProblem(null);
     }
   }
 
@@ -102,7 +146,7 @@ export function StudySession({ items }: { items: StudyItem[] }) {
         <div className="flex flex-col gap-2">
           <h1 className="font-display text-3xl font-bold text-white">Oturum tamamlandı 🎉</h1>
           <p className="text-neutral-400 text-sm">
-            {items.length} kelimeden <span className="text-emerald-400 font-bold font-mono">{correctCount}</span> tanesini doğru bildin.
+            {answeredCount} kelimeden <span className="text-emerald-400 font-bold font-mono">{correctCount}</span> tanesini doğru bildin.
           </p>
         </div>
         <div className="flex gap-3 mt-2">
@@ -146,8 +190,42 @@ export function StudySession({ items }: { items: StudyItem[] }) {
       {/* Main Question Card or Feedback view */}
       <div className="flex flex-1 items-center justify-center">
         {!feedback ? (
-          <div className="w-full">
-            <StudyCard item={item} disabled={submitting} onAnswer={handleAnswer} />
+          <div className="flex w-full flex-col gap-4">
+            <StudyCard
+              key={item.word.id + index}
+              item={item}
+              disabled={submitting || problem !== null}
+              onAnswer={handleAnswer}
+            />
+            {submitting && (
+              <p className="text-center text-sm text-neutral-400 animate-pulse">Kontrol ediliyor…</p>
+            )}
+            {problem && (
+              <div
+                role="alert"
+                className="mx-auto flex w-full max-w-xl flex-col items-center gap-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5 text-center"
+              >
+                <p className="text-sm text-amber-200">{problem.message}</p>
+                <div className="flex flex-wrap justify-center gap-3">
+                  {problem.retry && (
+                    <button
+                      onClick={problem.retry}
+                      disabled={submitting}
+                      className="rounded-full border border-white/20 bg-white/10 px-6 py-2.5 text-sm font-medium text-white transition-all hover:bg-white/20 disabled:opacity-40"
+                    >
+                      Tekrar dene
+                    </button>
+                  )}
+                  <button
+                    onClick={handleSkip}
+                    disabled={submitting}
+                    className="rounded-full border border-white/10 bg-white/5 px-6 py-2.5 text-sm font-medium text-neutral-300 transition-all hover:bg-white/10 disabled:opacity-40"
+                  >
+                    Bu kelimeyi atla
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="polkadot-card flex w-full max-w-xl flex-col gap-6 p-8 rounded-2xl mx-auto">

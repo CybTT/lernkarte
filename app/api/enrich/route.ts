@@ -1,6 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getRouteSupabase } from "@/lib/supabase/route";
 import { enrichWordRows, type EnrichableRow } from "@/lib/enrichment";
+import { aiUnavailable } from "@/lib/aiResponse";
+
+/** Caps how many words one request may enrich, so one call can't be huge. */
+const MAX_WORDS_PER_REQUEST = 25;
 
 export async function POST(request: NextRequest) {
   const { supabase, user } = await getRouteSupabase(request);
@@ -13,6 +17,9 @@ export async function POST(request: NextRequest) {
   const force = body?.force === true;
   if (!wordIds || !Array.isArray(wordIds) || wordIds.length === 0) {
     return NextResponse.json({ error: "word_ids is required" }, { status: 400 });
+  }
+  if (wordIds.length > MAX_WORDS_PER_REQUEST) {
+    return NextResponse.json({ error: "Too many word_ids" }, { status: 400 });
   }
 
   let query = supabase
@@ -33,10 +40,7 @@ export async function POST(request: NextRequest) {
   try {
     reports = await enrichWordRows(supabase, rows as EnrichableRow[]);
   } catch (err) {
-    return NextResponse.json(
-      { error: `Enrichment failed: ${(err as Error).message}` },
-      { status: 502 }
-    );
+    return aiUnavailable(err, "enrich");
   }
 
   return NextResponse.json({
