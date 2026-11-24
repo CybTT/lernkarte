@@ -25,7 +25,11 @@ async function render() {
   content.innerHTML = "";
   const status = document.createElement("div");
   status.className = "status";
-  status.innerHTML = `<span class="dot on"></span><span>${session.user.email ?? "Bağlı"}</span>`;
+  const dot = document.createElement("span");
+  dot.className = "dot on";
+  const label = document.createElement("span");
+  label.textContent = session.user.email ?? "Bağlı";
+  status.append(dot, label);
   content.appendChild(status);
 
   const p = document.createElement("p");

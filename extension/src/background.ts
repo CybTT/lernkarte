@@ -1,4 +1,4 @@
-import { APP_URL } from "./config";
+import { APP_ORIGIN, APP_URL } from "./config";
 import { getValidSession, insertWord, pingEnrich } from "./supabaseRest";
 import { setSession, type StoredSession } from "./session";
 
@@ -24,9 +24,26 @@ chrome.commands.onCommand.addListener((command, tab) => {
   }
 });
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+function isStoredSession(value: unknown): value is StoredSession {
+  const s = value as StoredSession | null;
+  return (
+    typeof s?.access_token === "string" &&
+    typeof s.refresh_token === "string" &&
+    typeof s.expires_at === "number" &&
+    typeof s.user?.id === "string"
+  );
+}
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message?.type === "STORE_SESSION") {
-    void setSession(message.session as StoredSession).then(() => sendResponse({ ok: true }));
+    // Only the LernKarte web app itself may hand the extension a session —
+    // never another site, even one the auth bridge somehow ran on.
+    const fromApp = sender.id === chrome.runtime.id && sender.origin === APP_ORIGIN;
+    if (!fromApp || !isStoredSession(message.session)) {
+      sendResponse({ ok: false });
+      return;
+    }
+    void setSession(message.session).then(() => sendResponse({ ok: true }));
     return true; // keep the channel open for the async response
   }
 });

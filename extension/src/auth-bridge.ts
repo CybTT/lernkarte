@@ -2,8 +2,10 @@
 // Relays the logged-in Supabase session from the page to the extension's
 // background service worker, so the extension can add words as the same user.
 
+import { APP_ORIGIN } from "./config";
+
 window.addEventListener("message", (event) => {
-  if (event.source !== window) return;
+  if (event.source !== window || event.origin !== APP_ORIGIN) return;
   if (event.data?.source !== "lernkarte-web") return;
 
   if (event.data.type === "SESSION") {

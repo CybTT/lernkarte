@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "LernKarte",
   "description": "Herhangi bir web sayfasında seçtiğin Almanca kelimeyi tek tıkla LernKarte sözlüğüne ekle.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
@@ -15,23 +15,41 @@
   "background": {
     "service_worker": "dist/background.js"
   },
-  "permissions": ["contextMenus", "storage", "activeTab", "scripting", "notifications"],
-  "host_permissions": ["https://*/*", "http://localhost/*"],
+  "permissions": [
+    "contextMenus",
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://bsfaiaifmoaammmenhhq.supabase.co/*",
+    "https://lernkartee.vercel.app/*"
+  ],
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["dist/content.js"],
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "dist/content.js"
+      ],
       "run_at": "document_idle"
     },
     {
-      "matches": ["http://localhost:3000/*", "https://*.vercel.app/*"],
-      "js": ["dist/auth-bridge.js"],
+      "matches": [
+        "https://lernkartee.vercel.app/*"
+      ],
+      "js": [
+        "dist/auth-bridge.js"
+      ],
       "run_at": "document_idle"
     }
   ],
   "commands": {
     "add-selection": {
-      "suggested_key": { "default": "Ctrl+Shift+E", "mac": "Command+Shift+E" },
+      "suggested_key": {
+        "default": "Ctrl+Shift+E",
+        "mac": "Command+Shift+E"
+      },
       "description": "Seçili kelimeyi LernKarte'ye ekle"
     }
   }

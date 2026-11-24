@@ -11,8 +11,8 @@ node_modules/
 !.yarn/releases
 !.yarn/versions
 
-# extension build output
-extension/dist/
+# extension build output is committed on purpose, so the extension can be
+# loaded unpacked straight from a download of this repo (see README).
 
 # testing
 /coverage
@@ -44,3 +44,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local design mock-up, not part of the app
+/preview.html
