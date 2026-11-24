@@ -1,3 +1,5 @@
+import { lastDayKeys } from "@/lib/dates";
+
 const DAYS = 90;
 
 function bucket(count: number): string {
@@ -8,14 +10,9 @@ function bucket(count: number): string {
   return "bg-amber-400 shadow-[0_0_6px_rgba(255,204,0,0.8)]";
 }
 
+/** `counts` is keyed by Turkish calendar day (see lib/dates). */
 export function StreakHeatmap({ counts }: { counts: Record<string, number> }) {
-  const today = new Date();
-  const cells = Array.from({ length: DAYS }, (_, i) => {
-    const d = new Date(today);
-    d.setDate(d.getDate() - (DAYS - 1 - i));
-    const key = d.toISOString().slice(0, 10);
-    return { key, count: counts[key] ?? 0 };
-  });
+  const cells = lastDayKeys(DAYS).map((key) => ({ key, count: counts[key] ?? 0 }));
 
   return (
     <div className="flex flex-wrap gap-1.5 justify-center sm:justify-start" aria-label="Son 90 günlük çalışma geçmişi">

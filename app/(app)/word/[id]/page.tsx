@@ -6,6 +6,7 @@ import { SpeakButton } from "@/components/SpeakButton";
 import { MasteryBar } from "@/components/MasteryBar";
 import { MeaningWithVariants } from "@/components/MeaningWithVariants";
 import { WordDetailActions } from "@/components/WordDetailActions";
+import { APP_TIME_ZONE } from "@/lib/dates";
 
 export default async function WordDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -33,10 +34,10 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-10">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-3 text-3xl sm:text-4xl font-bold font-display text-white">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex min-w-0 flex-wrap items-center gap-3 break-words text-3xl sm:text-4xl font-bold font-display text-white">
           <ArticleBadge article={w.article} />
-          <span>{w.term}</span>
+          <span className="min-w-0 [overflow-wrap:anywhere]">{w.term}</span>
           <SpeakButton text={w.term} />
         </div>
         <WordDetailActions wordId={w.id} />
@@ -124,7 +125,7 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
                 {(reviews as Review[]).map((r) => (
                   <tr key={r.id} className="hover:bg-white/[0.02]">
                     <td className="py-3 px-4 text-neutral-400 font-mono text-xs">
-                      {new Date(r.created_at).toLocaleDateString("tr-TR")}
+                      {new Date(r.created_at).toLocaleDateString("tr-TR", { timeZone: APP_TIME_ZONE })}
                     </td>
                     <td className="py-3 px-4">{r.question_type}</td>
                     <td className="py-3 px-4">

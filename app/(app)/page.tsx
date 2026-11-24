@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { buildStudySession, LEARNED_MASTERY_THRESHOLD } from "@/lib/engine";
 import type { Word } from "@/lib/types";
 import { StreakHeatmap } from "@/components/StreakHeatmap";
+import { countByDay } from "@/lib/dates";
 import { GermanyFlagBlank } from "@/components/GermanyFlagBlank";
 import { ArrowRight, BookOpen, AlertTriangle, Sparkles, CheckCircle2 } from "lucide-react";
 
@@ -36,18 +37,14 @@ export default async function DashboardPage() {
   const realProgress = totalWords > 0 ? Math.round(totalMasterySum / totalWords) : 0;
 
   const ninetyDaysAgo = new Date(now);
-  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 91);
   const { data: reviews } = await supabase
     .from("reviews")
     .select("created_at")
     .eq("user_id", user!.id)
     .gte("created_at", ninetyDaysAgo.toISOString());
 
-  const heatmapCounts: Record<string, number> = {};
-  for (const r of reviews ?? []) {
-    const key = new Date(r.created_at as string).toISOString().slice(0, 10);
-    heatmapCounts[key] = (heatmapCounts[key] ?? 0) + 1;
-  }
+  const heatmapCounts = countByDay((reviews ?? []).map((r) => r.created_at as string));
 
   return (
     <main className="relative mx-auto flex w-full max-w-4xl flex-1 flex-col items-center gap-12 px-6 py-12">
