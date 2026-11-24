@@ -2,20 +2,23 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, Sun, Sparkles } from "lucide-react";
+import { LogOut, Sun } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-
-const LINKS = [
-  { href: "/", label: "Panel" },
-  { href: "/dictionary", label: "Sözlük" },
-  { href: "/study", label: "Çalış" },
-  { href: "/extension-connect", label: "Uzantı" },
-];
+import { useI18n } from "@/components/I18nProvider";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export function NavBar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useI18n();
+
+  const LINKS = [
+    { href: "/", label: t.nav.dashboard },
+    { href: "/dictionary", label: t.nav.dictionary },
+    { href: "/study", label: t.nav.study },
+    { href: "/extension-connect", label: t.nav.extension },
+  ];
 
   async function handleLogout() {
     const supabase = createClient();
@@ -62,10 +65,11 @@ export function NavBar() {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2">
+          <LanguageSwitcher />
           <button 
             type="button"
             className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-neutral-400 transition-colors hover:bg-white/10 hover:text-white"
-            aria-label="Tema"
+            aria-label={t.nav.theme}
           >
             <Sun className="h-4 w-4" />
           </button>
@@ -73,10 +77,10 @@ export function NavBar() {
           <button
             onClick={handleLogout}
             className="flex items-center gap-1.5 rounded-full border border-white/10 bg-[#15161c] px-4 py-1.5 text-xs font-medium text-neutral-300 transition-all hover:border-white/20 hover:bg-[#20222b] hover:text-white"
-            aria-label="Çıkış yap"
+            aria-label={t.nav.logoutAria}
           >
             <LogOut className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Çıkış</span>
+            <span className="hidden sm:inline">{t.nav.logout}</span>
           </button>
         </div>
 

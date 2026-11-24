@@ -8,10 +8,13 @@ import { ArticleBadge } from "@/components/ArticleBadge";
 import { AddWordForm } from "@/components/AddWordForm";
 import { MeaningWithVariants } from "@/components/MeaningWithVariants";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/components/I18nProvider";
+import { fmt } from "@/lib/i18n";
 
 const LEARNED_THRESHOLD = 85;
 
 function WordRow({ word }: { word: Word }) {
+  const { t } = useI18n();
   return (
     <tr className="group border-b border-white/5 transition-colors hover:bg-white/[0.03]">
       <td className="py-3 px-4 w-0 whitespace-nowrap font-semibold">
@@ -23,17 +26,17 @@ function WordRow({ word }: { word: Word }) {
         </Link>
         {word.needs_review && (
           <span className="ml-2 inline-flex items-center rounded-full bg-rose-500/20 px-2 py-0.5 text-[10px] font-medium text-rose-400 border border-rose-500/30">
-            tanınmadı
+            {t.dictionary.badgeUnrecognized}
           </span>
         )}
         {!word.enriched && !word.needs_review && (
           <span className="ml-2 inline-flex items-center rounded-full bg-neutral-800 px-2 py-0.5 text-[10px] font-medium text-neutral-400 border border-white/10">
-            işlenmemiş
+            {t.dictionary.badgeUnprocessed}
           </span>
         )}
         {word.is_leech && (
           <span className="ml-2 inline-flex items-center rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-medium text-amber-300 border border-amber-500/30">
-            zayıf
+            {t.dictionary.badgeWeak}
           </span>
         )}
       </td>
@@ -54,20 +57,21 @@ function WordRow({ word }: { word: Word }) {
 }
 
 function WordTable({ words }: { words: Word[] }) {
+  const { t } = useI18n();
   if (words.length === 0) {
-    return <p className="text-sm text-neutral-500 py-12 text-center">Burada henüz kelime yok.</p>;
+    return <p className="text-sm text-neutral-500 py-12 text-center">{t.dictionary.empty}</p>;
   }
   return (
     <div className="w-full overflow-x-auto rounded-2xl border border-white/10 bg-[#101116]/80 backdrop-blur-md">
       <table className="w-full text-left text-sm text-neutral-200">
         <thead className="border-b border-white/10 bg-white/[0.02] text-xs font-semibold text-neutral-400 uppercase tracking-wider">
           <tr>
-            <th className="py-3 px-4 w-0">Artikel</th>
-            <th className="py-3 px-4">Kelime</th>
-            <th className="py-3 px-4 hidden sm:table-cell">Okunuş</th>
-            <th className="py-3 px-4">Anlam</th>
-            <th className="py-3 px-4">Ustalık</th>
-            <th className="py-3 px-4 hidden lg:table-cell">Kullanım</th>
+            <th className="py-3 px-4 w-0">{t.dictionary.colArticle}</th>
+            <th className="py-3 px-4">{t.dictionary.colWord}</th>
+            <th className="py-3 px-4 hidden sm:table-cell">{t.dictionary.colIpa}</th>
+            <th className="py-3 px-4">{t.dictionary.colMeaning}</th>
+            <th className="py-3 px-4">{t.dictionary.colMastery}</th>
+            <th className="py-3 px-4 hidden lg:table-cell">{t.dictionary.colUsage}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-white/5">
@@ -81,18 +85,19 @@ function WordTable({ words }: { words: Word[] }) {
 }
 
 function ThemeGroups({ words }: { words: Word[] }) {
+  const { t } = useI18n();
   const groups = useMemo(() => {
     const map = new Map<string, Word[]>();
     for (const w of words) {
-      const key = w.theme ?? "Diğer";
+      const key = w.theme ?? t.dictionary.themeOther;
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(w);
     }
     return [...map.entries()].sort((a, b) => b[1].length - a[1].length);
-  }, [words]);
+  }, [words, t]);
 
   if (groups.length === 0) {
-    return <p className="text-sm text-neutral-500 py-12 text-center">Henüz temalanmış kelime yok.</p>;
+    return <p className="text-sm text-neutral-500 py-12 text-center">{t.dictionary.emptyThemes}</p>;
   }
 
   return (
@@ -101,7 +106,7 @@ function ThemeGroups({ words }: { words: Word[] }) {
         <details key={theme} className="rounded-xl border border-white/10 bg-[#101116] overflow-hidden" open={groups.length <= 3}>
           <summary className="cursor-pointer select-none px-5 py-4 font-medium flex items-center justify-between hover:bg-white/[0.02] transition-colors">
             <span className="text-white font-semibold">{theme}</span>
-            <span className="text-xs text-neutral-400 font-mono">{items.length} kelime</span>
+            <span className="text-xs text-neutral-400 font-mono">{fmt(t.dictionary.themeCount, { n: items.length })}</span>
           </summary>
           <div className="p-3 pt-0">
             <WordTable words={items} />
@@ -114,17 +119,18 @@ function ThemeGroups({ words }: { words: Word[] }) {
 
 export function DictionaryView({ words, initialTab = "all" }: { words: Word[]; initialTab?: string }) {
   const [tab, setTab] = useState(initialTab);
+  const { t } = useI18n();
 
   const leeches = words.filter((w) => w.is_leech);
   const learning = words.filter((w) => !w.is_leech && w.mastery < LEARNED_THRESHOLD);
   const mastered = words.filter((w) => w.mastery >= LEARNED_THRESHOLD);
 
   const TABS = [
-    { id: "all", label: `Tümü (${words.length})` },
-    { id: "leeches", label: `Zayıflar (${leeches.length})` },
-    { id: "learning", label: `Öğrenilmekte (${learning.length})` },
-    { id: "mastered", label: `Öğrenilmiş (${mastered.length})` },
-    { id: "theme", label: "Tema" },
+    { id: "all", label: fmt(t.dictionary.tabAll, { n: words.length }) },
+    { id: "leeches", label: fmt(t.dictionary.tabLeeches, { n: leeches.length }) },
+    { id: "learning", label: fmt(t.dictionary.tabLearning, { n: learning.length }) },
+    { id: "mastered", label: fmt(t.dictionary.tabMastered, { n: mastered.length }) },
+    { id: "theme", label: t.dictionary.tabTheme },
   ];
 
   return (

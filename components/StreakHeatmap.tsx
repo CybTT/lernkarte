@@ -1,4 +1,5 @@
 import { lastDayKeys } from "@/lib/dates";
+import { fmt } from "@/lib/i18n";
 
 const DAYS = 90;
 
@@ -11,15 +12,24 @@ function bucket(count: number): string {
 }
 
 /** `counts` is keyed by Turkish calendar day (see lib/dates). */
-export function StreakHeatmap({ counts }: { counts: Record<string, number> }) {
+export function StreakHeatmap({
+  counts,
+  label,
+  cellLabel,
+}: {
+  counts: Record<string, number>;
+  label: string;
+  /** e.g. "{date}: {n} reviews" */
+  cellLabel: string;
+}) {
   const cells = lastDayKeys(DAYS).map((key) => ({ key, count: counts[key] ?? 0 }));
 
   return (
-    <div className="flex flex-wrap gap-1.5 justify-center sm:justify-start" aria-label="Son 90 günlük çalışma geçmişi">
+    <div className="flex flex-wrap gap-1.5 justify-center sm:justify-start" aria-label={label}>
       {cells.map((cell) => (
         <div
           key={cell.key}
-          title={`${cell.key}: ${cell.count} tekrar`}
+          title={fmt(cellLabel, { date: cell.key, n: cell.count })}
           className={`h-3 w-3 rounded-sm transition-all hover:scale-125 ${bucket(cell.count)}`}
         />
       ))}

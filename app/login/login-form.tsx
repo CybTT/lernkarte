@@ -4,21 +4,24 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { safeNextPath } from "@/lib/safeNext";
+import { useI18n } from "@/components/I18nProvider";
+import { fmtParts, type Dictionary } from "@/lib/i18n";
 
 type Mode = "signin" | "signup";
 type Status = "idle" | "busy" | "error" | "confirm-email";
 
-function friendlyError(message: string): string {
-  if (message.includes("Invalid login credentials")) return "E-posta veya şifre yanlış.";
+function friendlyError(message: string, t: Dictionary["login"]): string {
+  if (message.includes("Invalid login credentials")) return t.errInvalid;
   if (message.includes("already registered") || message.includes("already been registered"))
-    return "Bu e-posta zaten kayıtlı, giriş yapmayı dene.";
-  if (message.includes("Password should be at least")) return "Şifre en az 6 karakter olmalı.";
-  if (message.includes("Unable to validate email")) return "Geçersiz e-posta adresi.";
+    return t.errRegistered;
+  if (message.includes("Password should be at least")) return t.errShortPassword;
+  if (message.includes("Unable to validate email")) return t.errBadEmail;
   return message;
 }
 
 export function LoginForm({ next: rawNext }: { next?: string }) {
   const next = safeNextPath(rawNext);
+  const { t } = useI18n();
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,7 +39,7 @@ export function LoginForm({ next: rawNext }: { next?: string }) {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         setStatus("error");
-        setError(friendlyError(error.message));
+        setError(friendlyError(error.message, t.login));
         return;
       }
       router.push(next);
@@ -53,7 +56,7 @@ export function LoginForm({ next: rawNext }: { next?: string }) {
     });
     if (error) {
       setStatus("error");
-      setError(friendlyError(error.message));
+      setError(friendlyError(error.message, t.login));
       return;
     }
     if (data.session) {
@@ -67,8 +70,13 @@ export function LoginForm({ next: rawNext }: { next?: string }) {
   if (status === "confirm-email") {
     return (
       <p className="text-sm text-neutral-300 text-center">
-        <strong className="text-white">{email}</strong> adresine bir onay bağlantısı
-        gönderdik. Onayladıktan sonra giriş yapabilirsin.
+        {fmtParts(t.login.confirmEmail, {
+          email: (
+            <strong key="email" className="text-white">
+              {email}
+            </strong>
+          ),
+        })}
       </p>
     );
   }
@@ -78,13 +86,13 @@ export function LoginForm({ next: rawNext }: { next?: string }) {
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
         <div className="flex flex-col gap-1.5">
           <label htmlFor="email" className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
-            E-posta
+            {t.login.email}
           </label>
           <input
             id="email"
             type="email"
             required
-            placeholder="sen@ornek.com"
+            placeholder={t.login.emailPlaceholder}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full rounded-xl border border-white/10 bg-[#121318] p-3 text-sm text-white placeholder:text-neutral-500 focus:border-white/30 focus:outline-none transition-all"
@@ -93,7 +101,7 @@ export function LoginForm({ next: rawNext }: { next?: string }) {
 
         <div className="flex flex-col gap-1.5">
           <label htmlFor="password" className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
-            Şifre
+            {t.login.password}
           </label>
           <input
             id="password"
@@ -114,11 +122,11 @@ export function LoginForm({ next: rawNext }: { next?: string }) {
         >
           {status === "busy"
             ? mode === "signin"
-              ? "Giriş yapılıyor…"
-              : "Hesap oluşturuluyor…"
+              ? t.login.signingIn
+              : t.login.creatingAccount
             : mode === "signin"
-              ? "Giriş Yap"
-              : "Hesap Oluştur"}
+              ? t.login.signIn
+              : t.login.signUp}
         </button>
 
         {status === "error" && error && (
@@ -135,7 +143,7 @@ export function LoginForm({ next: rawNext }: { next?: string }) {
           setError(null);
         }}
       >
-        {mode === "signin" ? "Hesabın yok mu? Kayıt ol" : "Zaten hesabın var mı? Giriş yap"}
+        {mode === "signin" ? t.login.toSignUp : t.login.toSignIn}
       </button>
     </div>
   );

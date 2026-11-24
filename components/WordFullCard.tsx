@@ -27,7 +27,7 @@ export function WordFullCard({ word }: { word: Word }) {
       {word.example_de && (
         <div className="mt-1 flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-4 text-sm">
           <div className="flex-1 space-y-1">
-            <p className="font-medium text-white">"{word.example_de}"</p>
+            <p className="font-medium text-white">&ldquo;{word.example_de}&rdquo;</p>
             {word.example_tr && <p className="text-neutral-400 text-xs">{word.example_tr}</p>}
           </div>
           <SpeakButton text={word.example_de} />

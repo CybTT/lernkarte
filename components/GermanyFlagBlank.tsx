@@ -1,6 +1,9 @@
 import { Flag } from "lucide-react";
+import type { Dictionary } from "@/lib/i18n";
+import { fmt } from "@/lib/i18n";
 
 interface GermanyFlagBlankProps {
+  t: Dictionary["flag"];
   /** Real progress percentage calculated from user's words (0 to 100) */
   realProgress: number;
   totalWords: number;
@@ -9,6 +12,7 @@ interface GermanyFlagBlankProps {
 }
 
 export function GermanyFlagBlank({
+  t,
   realProgress,
   totalWords,
   masteredWords,
@@ -36,12 +40,12 @@ export function GermanyFlagBlank({
               <Flag className="h-3.5 w-3.5" />
             </div>
             <span className="text-xs font-medium tracking-wider uppercase text-neutral-400">
-              Gelişim Blank Metresi
+              {t.title}
             </span>
           </div>
 
           <span className="text-xs text-neutral-400">
-            {masteredWords} / {totalWords} Kelime Tamam
+            {fmt(t.wordsDone, { done: masteredWords, total: totalWords })}
           </span>
         </div>
 
@@ -100,9 +104,9 @@ export function GermanyFlagBlank({
                 LERNKARTE
               </span>
               <span className="text-xs sm:text-sm tracking-widest font-mono text-neutral-200 mt-1 uppercase">
-                {progressPercent === 100 
-                  ? "🇩🇪 %100 ALMANYA BAYRAĞI TAMAMLANDI!" 
-                  : `%${Math.round(progressPercent)} BAYRAK DOLULUK ORANI`}
+                {progressPercent === 100
+                  ? t.complete
+                  : fmt(t.fill, { n: Math.round(progressPercent) })}
               </span>
             </div>
 
@@ -113,21 +117,21 @@ export function GermanyFlagBlank({
         {/* Bottom Metrics Pills */}
         <div className="relative z-10 mt-6 grid grid-cols-3 gap-3 border-t border-white/10 pt-4 text-center">
           <div className="flex flex-col items-center">
-            <span className="text-xs text-neutral-400">Genel Düzey</span>
+            <span className="text-xs text-neutral-400">{t.overall}</span>
             <span className="text-lg font-bold font-mono text-white">
-              %{Math.round(realProgress)}
+              {fmt(t.percent, { n: Math.round(realProgress) })}
             </span>
           </div>
 
           <div className="flex flex-col items-center border-x border-white/10">
-            <span className="text-xs text-neutral-400">Öğrenilen</span>
+            <span className="text-xs text-neutral-400">{t.learned}</span>
             <span className="text-lg font-bold font-mono text-emerald-400">
               {masteredWords}
             </span>
           </div>
 
           <div className="flex flex-col items-center">
-            <span className="text-xs text-neutral-400">Öğrenilmekte</span>
+            <span className="text-xs text-neutral-400">{t.learning}</span>
             <span className="text-lg font-bold font-mono text-sky-400">
               {learningWords}
             </span>

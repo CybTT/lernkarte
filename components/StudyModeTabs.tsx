@@ -1,17 +1,18 @@
 import Link from "next/link";
 import type { StudyMode } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import type { Dictionary } from "@/lib/i18n";
 
-export const STUDY_MODES: { id: StudyMode; label: string; recommended?: boolean }[] = [
-  { id: "smart", label: "Akıllı Çalışma", recommended: true },
-  { id: "flashcard", label: "Flashcard" },
-  { id: "typing", label: "Yazma" },
-  { id: "translate", label: "Çeviri" },
+export const STUDY_MODES: { id: StudyMode; recommended?: boolean }[] = [
+  { id: "smart", recommended: true },
+  { id: "flashcard" },
+  { id: "typing" },
+  { id: "translate" },
 ];
 
-export function StudyModeTabs({ active }: { active: StudyMode }) {
+export function StudyModeTabs({ active, t }: { active: StudyMode; t: Dictionary["study"] }) {
   return (
-    <nav className="flex flex-wrap items-center justify-center gap-2 rounded-full border border-white/10 bg-[#121318] p-1.5 w-fit mx-auto" aria-label="Çalışma modu">
+    <nav className="flex flex-wrap items-center justify-center gap-2 rounded-full border border-white/10 bg-[#121318] p-1.5 w-fit mx-auto" aria-label={t.modesAria}>
       {STUDY_MODES.map((mode) => (
         <Link
           key={mode.id}
@@ -24,10 +25,10 @@ export function StudyModeTabs({ active }: { active: StudyMode }) {
           )}
           aria-current={mode.id === active ? "page" : undefined}
         >
-          <span>{mode.label}</span>
+          <span>{t.modes[mode.id]}</span>
           {mode.recommended && (
             <span className="rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-semibold text-amber-300 border border-amber-500/30">
-              önerilen
+              {t.recommended}
             </span>
           )}
         </Link>

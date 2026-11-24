@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { StudyItem } from "@/lib/types";
 import type { GradeOutcome } from "@/lib/grading";
+import { useI18n } from "@/components/I18nProvider";
+import { fmtParts } from "@/lib/i18n";
 import { submitAnswer } from "@/app/(app)/study/actions";
 import { StudyCard, type StudyCardAnswer } from "@/components/StudyCard";
 import { WordFullCard } from "@/components/WordFullCard";
@@ -26,10 +28,6 @@ interface ProblemState {
   retry?: () => void;
 }
 
-const GRADE_FAILED_MESSAGE = "Cevabın değerlendirilemedi, tekrar dene.";
-const SAVE_FAILED_MESSAGE =
-  "Bağlantı koptu, cevabın kaydedilemedi. İnternet bağlantını kontrol edip tekrar dene.";
-
 export function StudySession({ items }: { items: StudyItem[] }) {
   const [index, setIndex] = useState(0);
   const [feedback, setFeedback] = useState<FeedbackState | null>(null);
@@ -40,6 +38,7 @@ export function StudySession({ items }: { items: StudyItem[] }) {
   const [answeredCount, setAnsweredCount] = useState(0);
   const startRef = useRef(0);
   const router = useRouter();
+  const { t } = useI18n();
 
   const item = items[index];
 
@@ -69,7 +68,7 @@ export function StudySession({ items }: { items: StudyItem[] }) {
       });
     } catch {
       setProblem({
-        message: SAVE_FAILED_MESSAGE,
+        message: t.study.saveFailed,
         retry: () => void record(correct, responseMs, gradeFeedback),
       });
     } finally {
@@ -92,7 +91,7 @@ export function StudySession({ items }: { items: StudyItem[] }) {
       await record(outcome.correct, responseMs, outcome.feedback || undefined);
     } else {
       setProblem({
-        message: GRADE_FAILED_MESSAGE,
+        message: t.study.gradeFailed,
         retry: () => void gradeThenRecord(grade, responseMs),
       });
     }
@@ -144,9 +143,16 @@ export function StudySession({ items }: { items: StudyItem[] }) {
           <CheckCircle2 className="h-8 w-8" />
         </div>
         <div className="flex flex-col gap-2">
-          <h1 className="font-display text-3xl font-bold text-white">Oturum tamamlandı 🎉</h1>
+          <h1 className="font-display text-3xl font-bold text-white">{t.study.doneTitle}</h1>
           <p className="text-neutral-400 text-sm">
-            {answeredCount} kelimeden <span className="text-emerald-400 font-bold font-mono">{correctCount}</span> tanesini doğru bildin.
+            {fmtParts(t.study.doneScore, {
+              total: answeredCount,
+              correct: (
+                <span key="correct" className="text-emerald-400 font-bold font-mono">
+                  {correctCount}
+                </span>
+              ),
+            })}
           </p>
         </div>
         <div className="flex gap-3 mt-2">
@@ -154,14 +160,14 @@ export function StudySession({ items }: { items: StudyItem[] }) {
             href="/dictionary"
             className="rounded-full border border-white/10 bg-white/5 hover:bg-white/10 text-neutral-300 px-6 py-2.5 text-sm font-medium transition-all"
           >
-            Sözlük
+            {t.nav.dictionary}
           </Link>
           <Link
             href="/"
             onClick={() => router.refresh()}
             className="rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white px-6 py-2.5 text-sm font-medium transition-all flex items-center gap-2"
           >
-            <span>Panele dön</span>
+            <span>{t.study.backToDashboard}</span>
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
@@ -198,7 +204,7 @@ export function StudySession({ items }: { items: StudyItem[] }) {
               onAnswer={handleAnswer}
             />
             {submitting && (
-              <p className="text-center text-sm text-neutral-400 animate-pulse">Kontrol ediliyor…</p>
+              <p className="text-center text-sm text-neutral-400 animate-pulse">{t.study.checking}</p>
             )}
             {problem && (
               <div
@@ -213,7 +219,7 @@ export function StudySession({ items }: { items: StudyItem[] }) {
                       disabled={submitting}
                       className="rounded-full border border-white/20 bg-white/10 px-6 py-2.5 text-sm font-medium text-white transition-all hover:bg-white/20 disabled:opacity-40"
                     >
-                      Tekrar dene
+                      {t.common.retry}
                     </button>
                   )}
                   <button
@@ -221,7 +227,7 @@ export function StudySession({ items }: { items: StudyItem[] }) {
                     disabled={submitting}
                     className="rounded-full border border-white/10 bg-white/5 px-6 py-2.5 text-sm font-medium text-neutral-300 transition-all hover:bg-white/10 disabled:opacity-40"
                   >
-                    Bu kelimeyi atla
+                    {t.study.skip}
                   </button>
                 </div>
               </div>
@@ -236,7 +242,7 @@ export function StudySession({ items }: { items: StudyItem[] }) {
                   : "text-center text-xl font-bold text-rose-400"
               }
             >
-              {feedback.correct ? "Doğru! ✓" : "Yanlış"}
+              {feedback.correct ? t.study.correct : t.study.wrong}
             </p>
             
             {feedback.gradeFeedback && (
@@ -257,7 +263,7 @@ export function StudySession({ items }: { items: StudyItem[] }) {
               autoFocus
               className="rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white py-3 font-medium text-sm transition-all hover:scale-[1.02]"
             >
-              Devam et (Enter)
+              {t.study.continue}
             </button>
           </div>
         )}

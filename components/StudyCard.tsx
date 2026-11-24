@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import type { StudyItem, Word } from "@/lib/types";
 import { answersMatch, makeCloze } from "@/lib/germanMatch";
 import { requestGrade, type GradeOutcome } from "@/lib/grading";
+import { useI18n } from "@/components/I18nProvider";
+import { fmt } from "@/lib/i18n";
 import { ArticleBadge } from "@/components/ArticleBadge";
 import { SpeakButton } from "@/components/SpeakButton";
 
@@ -23,6 +25,7 @@ interface StudyCardProps {
 }
 
 function MultipleChoiceQuestion({ item, disabled, onAnswer }: StudyCardProps) {
+  const { t } = useI18n();
   const { word, options = [] } = item;
   const isCorrect = (option: string) => option.toLowerCase() === word.term.toLowerCase();
 
@@ -42,7 +45,7 @@ function MultipleChoiceQuestion({ item, disabled, onAnswer }: StudyCardProps) {
     <div className="polkadot-card flex flex-col gap-8 p-8 sm:p-10 rounded-2xl w-full max-w-xl mx-auto">
       <div className="flex flex-col items-center gap-2 text-center">
         <span className="text-xs font-semibold tracking-wider uppercase text-neutral-400">
-          Bunun Almancası hangisi?
+          {t.study.whichGerman}
         </span>
         <h2 className="font-display text-3xl sm:text-4xl font-bold text-white mt-1">
           {word.meaning_tr}
@@ -69,6 +72,7 @@ function MultipleChoiceQuestion({ item, disabled, onAnswer }: StudyCardProps) {
 }
 
 function FlashcardQuestion({ item, disabled, onAnswer }: StudyCardProps) {
+  const { t } = useI18n();
   const { word } = item;
   const [revealed, setRevealed] = useState(false);
 
@@ -104,7 +108,7 @@ function FlashcardQuestion({ item, disabled, onAnswer }: StudyCardProps) {
             disabled={disabled}
             className="rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white px-8 py-3 text-sm font-medium transition-all hover:scale-105"
           >
-            Cevabı göster (Space)
+            {t.study.showAnswer}
           </button>
         </div>
       ) : (
@@ -112,7 +116,7 @@ function FlashcardQuestion({ item, disabled, onAnswer }: StudyCardProps) {
           <div className="flex flex-col items-center gap-2">
             <p className="text-2xl font-medium text-white">{word.meaning_tr ?? "—"}</p>
             {word.example_de && (
-              <p className="text-sm text-neutral-400 italic">"{word.example_de}"</p>
+              <p className="text-sm text-neutral-400 italic">&ldquo;{word.example_de}&rdquo;</p>
             )}
           </div>
 
@@ -122,14 +126,14 @@ function FlashcardQuestion({ item, disabled, onAnswer }: StudyCardProps) {
               onClick={() => onAnswer({ correct: false })}
               className="rounded-xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 py-3 font-medium transition-all"
             >
-              Bilmedim (1)
+              {t.study.didntKnow}
             </button>
             <button
               disabled={disabled}
               onClick={() => onAnswer({ correct: true })}
               className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 py-3 font-medium transition-all"
             >
-              Bildim (2)
+              {t.study.knew}
             </button>
           </div>
         </div>
@@ -153,6 +157,7 @@ function TypingLikeQuestion({
   disabled: boolean;
   onAnswer: (answer: StudyCardAnswer) => void;
 }) {
+  const { t } = useI18n();
   const [value, setValue] = useState("");
 
   function handleSubmit(e: React.FormEvent) {
@@ -176,7 +181,7 @@ function TypingLikeQuestion({
         value={value}
         onChange={(e) => setValue(e.target.value)}
         disabled={disabled}
-        placeholder="Almanca yanıtınızı yazın..."
+        placeholder={t.study.answerPlaceholder}
         className="w-full rounded-xl border border-white/10 bg-[#121318] p-4 text-center text-lg text-white placeholder:text-neutral-500 focus:border-white/30 focus:outline-none transition-all"
       />
 
@@ -185,13 +190,14 @@ function TypingLikeQuestion({
         disabled={disabled || !value.trim()}
         className="rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white py-3 text-sm font-medium transition-all disabled:opacity-40"
       >
-        Gönder (Enter)
+        {t.study.submit}
       </button>
     </form>
   );
 }
 
 function ClozeQuestion({ item, disabled, onAnswer }: StudyCardProps) {
+  const { t } = useI18n();
   const { word } = item;
   const cloze = word.example_de ? makeCloze(word.example_de, word.term) : { prompt: "", found: false };
 
@@ -210,7 +216,7 @@ function ClozeQuestion({ item, disabled, onAnswer }: StudyCardProps) {
 
   return (
     <TypingLikeQuestion
-      prompt={`"${word.meaning_tr}" kelimesinin Almancası ne?`}
+      prompt={fmt(t.study.whatIsGerman, { meaning: word.meaning_tr ?? "" })}
       word={word}
       correctAnswer={word.term}
       disabled={disabled}
@@ -220,10 +226,11 @@ function ClozeQuestion({ item, disabled, onAnswer }: StudyCardProps) {
 }
 
 function TypingQuestion({ item, disabled, onAnswer }: StudyCardProps) {
+  const { t } = useI18n();
   const { word } = item;
   return (
     <TypingLikeQuestion
-      prompt={`"${word.meaning_tr}" kelimesinin Almancası ne?`}
+      prompt={fmt(t.study.whatIsGerman, { meaning: word.meaning_tr ?? "" })}
       word={word}
       correctAnswer={word.term}
       disabled={disabled}
@@ -233,6 +240,7 @@ function TypingQuestion({ item, disabled, onAnswer }: StudyCardProps) {
 }
 
 function TranslateQuestion({ item, disabled, onAnswer }: StudyCardProps) {
+  const { t } = useI18n();
   const { word } = item;
   const [value, setValue] = useState("");
 
@@ -251,7 +259,7 @@ function TranslateQuestion({ item, disabled, onAnswer }: StudyCardProps) {
     <form onSubmit={handleSubmit} className="polkadot-card flex flex-col gap-6 p-8 sm:p-10 rounded-2xl w-full max-w-xl mx-auto">
       <div className="flex flex-col items-center gap-2 text-center">
         <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
-          Almancaya çevir:
+          {t.study.translateTo}
         </span>
         <p className="text-xl font-medium text-white">{word.example_tr ?? word.meaning_tr}</p>
       </div>
@@ -261,7 +269,7 @@ function TranslateQuestion({ item, disabled, onAnswer }: StudyCardProps) {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         disabled={disabled}
-        placeholder="Almanca cümle yaz..."
+        placeholder={t.study.sentencePlaceholder}
         className="w-full rounded-xl border border-white/10 bg-[#121318] p-4 text-center text-lg text-white placeholder:text-neutral-500 focus:border-white/30 focus:outline-none transition-all"
       />
 
@@ -270,7 +278,7 @@ function TranslateQuestion({ item, disabled, onAnswer }: StudyCardProps) {
         disabled={disabled || !value.trim()}
         className="rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white py-3 text-sm font-medium transition-all disabled:opacity-40"
       >
-        Gönder (Enter)
+        {t.study.submit}
       </button>
     </form>
   );

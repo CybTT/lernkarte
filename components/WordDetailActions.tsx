@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/components/I18nProvider";
 
 export function WordDetailActions({ wordId }: { wordId: string }) {
   const [busy, setBusy] = useState(false);
   const router = useRouter();
+  const { t } = useI18n();
 
   async function withAuthHeader() {
     const supabase = createClient();
@@ -36,26 +38,26 @@ export function WordDetailActions({ wordId }: { wordId: string }) {
       setBusy(false);
     }
     if (res?.ok) {
-      toast.success("Kelime yeniden zenginleştirildi.");
+      toast.success(t.word.reenriched);
       router.refresh();
     } else if (!res) {
-      toast.error("Bağlantı koptu, tekrar dene.");
+      toast.error(t.word.connectionLost);
     } else {
-      toast.error("Zenginleştirme başarısız oldu, tekrar dene.");
+      toast.error(t.word.reenrichFailed);
     }
   }
 
   async function handleDelete() {
-    if (!confirm("Bu kelimeyi silmek istediğine emin misin?")) return;
+    if (!confirm(t.word.confirmDelete)) return;
     setBusy(true);
     const supabase = createClient();
     const { error } = await supabase.from("words").delete().eq("id", wordId);
     setBusy(false);
     if (error) {
-      toast.error("Silinemedi.");
+      toast.error(t.word.deleteFailed);
       return;
     }
-    toast.success("Kelime silindi.");
+    toast.success(t.word.deleted);
     router.push("/dictionary");
     router.refresh();
   }
@@ -63,10 +65,10 @@ export function WordDetailActions({ wordId }: { wordId: string }) {
   return (
     <div className="flex gap-2">
       <Button variant="secondary" onClick={handleReenrich} disabled={busy}>
-        Yeniden zenginleştir
+        {t.word.reenrich}
       </Button>
       <Button variant="destructive" onClick={handleDelete} disabled={busy}>
-        Sil
+        {t.word.delete}
       </Button>
     </div>
   );

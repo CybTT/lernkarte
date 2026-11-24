@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useI18n } from "@/components/I18nProvider";
+import { fmt } from "@/lib/i18n";
 
 function stripLeadingArticle(term: string): string {
   return term.replace(/^(der|die|das)\s+/i, "").trim();
@@ -14,6 +16,7 @@ export function AddWordForm() {
   const [term, setTerm] = useState("");
   const [busy, setBusy] = useState(false);
   const router = useRouter();
+  const { t } = useI18n();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -22,12 +25,15 @@ export function AddWordForm() {
 
     setBusy(true);
     const supabase = createClient();
+    // The locally stored session is enough here: the database itself (RLS)
+    // rejects inserts for anyone but the signed-in user.
     const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      data: { session },
+    } = await supabase.auth.getSession();
+    const user = session?.user;
 
     if (!user) {
-      toast.error("Önce giriş yapmalısın.");
+      toast.error(t.addWord.loginFirst);
       setBusy(false);
       return;
     }
@@ -39,19 +45,15 @@ export function AddWordForm() {
       .single();
 
     if (error || !inserted) {
-      toast.error("Kelime eklenemedi.");
+      toast.error(t.addWord.failed);
       setBusy(false);
       return;
     }
 
     setTerm("");
     setBusy(false);
-    toast.success(`"${cleaned}" eklendi, zenginleştiriliyor…`);
+    toast.success(fmt(t.addWord.added, { term: cleaned }));
     router.refresh();
-
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
 
     fetch("/api/enrich", {
       method: "POST",
@@ -63,7 +65,7 @@ export function AddWordForm() {
     })
       .then(async (res) => {
         if (!res.ok) {
-          toast.error(`"${cleaned}" zenginleştirilemedi.`);
+          toast.error(fmt(t.addWord.enrichFailed, { term: cleaned }));
           return;
         }
         const data = await res.json().catch(() => null);
@@ -71,14 +73,14 @@ export function AddWordForm() {
         router.refresh();
 
         if (report?.needs_review) {
-          toast.error(`"${cleaned}" bir Almanca kelime olarak tanınmadı — sözlükten düzeltebilirsin.`);
+          toast.error(fmt(t.addWord.notRecognized, { term: cleaned }));
         } else if (report?.corrected) {
-          toast.success(`"${cleaned}" → ${report.term} olarak kaydedildi.`);
+          toast.success(fmt(t.addWord.corrected, { input: cleaned, term: report.term }));
         } else {
-          toast.success(`"${report?.term ?? cleaned}" zenginleştirildi.`);
+          toast.success(fmt(t.addWord.enriched, { term: report?.term ?? cleaned }));
         }
       })
-      .catch(() => toast.error(`"${cleaned}" zenginleştirilemedi.`));
+      .catch(() => toast.error(fmt(t.addWord.enrichFailed, { term: cleaned })));
   }
 
   return (
@@ -87,7 +89,7 @@ export function AddWordForm() {
         type="text"
         value={term}
         onChange={(e) => setTerm(e.target.value)}
-        placeholder="Yeni Almanca kelime ekle (örn. Haus)..."
+        placeholder={t.addWord.placeholder}
         disabled={busy}
         className="flex-1 rounded-full border border-white/10 bg-[#121318] px-5 py-3 text-sm text-white placeholder:text-neutral-500 focus:border-white/30 focus:outline-none transition-all shadow-inner"
       />
@@ -97,7 +99,7 @@ export function AddWordForm() {
         className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white px-6 py-3 text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105"
       >
         <Plus className="h-4 w-4" />
-        <span>Ekle</span>
+        <span>{t.addWord.add}</span>
       </button>
     </form>
   );

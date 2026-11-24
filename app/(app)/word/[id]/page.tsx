@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, requireUserId } from "@/lib/supabase/server";
 import type { Review, Word } from "@/lib/types";
 import { ArticleBadge } from "@/components/ArticleBadge";
 import { SpeakButton } from "@/components/SpeakButton";
@@ -7,30 +7,27 @@ import { MasteryBar } from "@/components/MasteryBar";
 import { MeaningWithVariants } from "@/components/MeaningWithVariants";
 import { WordDetailActions } from "@/components/WordDetailActions";
 import { APP_TIME_ZONE } from "@/lib/dates";
+import { getI18n } from "@/lib/i18n/server";
+import { DATE_LOCALE, fmt } from "@/lib/i18n";
 
 export default async function WordDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const [userId, { t, locale }] = await Promise.all([requireUserId(supabase), getI18n()]);
 
-  const { data: word } = await supabase
-    .from("words")
-    .select("*")
-    .eq("id", id)
-    .eq("user_id", user!.id)
-    .single();
+  const [{ data: word }, { data: reviews }] = await Promise.all([
+    supabase.from("words").select("*").eq("id", id).eq("user_id", userId).maybeSingle(),
+    supabase
+      .from("reviews")
+      .select("*")
+      .eq("word_id", id)
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(20),
+  ]);
 
   if (!word) notFound();
   const w = word as Word;
-
-  const { data: reviews } = await supabase
-    .from("reviews")
-    .select("*")
-    .eq("word_id", id)
-    .order("created_at", { ascending: false })
-    .limit(20);
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-10">
@@ -46,17 +43,17 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
       <div className="flex flex-wrap items-center gap-2">
         {w.needs_review && (
           <span className="rounded-full bg-rose-500/20 px-3 py-1 text-xs font-semibold text-rose-300 border border-rose-500/30">
-            tanınmadı
+            {t.dictionary.badgeUnrecognized}
           </span>
         )}
         {!w.enriched && !w.needs_review && (
           <span className="rounded-full bg-neutral-800 px-3 py-1 text-xs font-semibold text-neutral-400 border border-white/10">
-            işlenmemiş
+            {t.dictionary.badgeUnprocessed}
           </span>
         )}
         {w.original_input && (
           <span className="text-xs text-neutral-400">
-            girdin: &ldquo;{w.original_input}&rdquo; → {w.term}
+            {fmt(t.word.youTyped, { input: w.original_input, term: w.term })}
           </span>
         )}
       </div>
@@ -77,13 +74,16 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
         </div>
 
         <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-3 border-t border-white/10 pt-4">
-          <Field label="Çoğul" value={w.plural} />
-          <Field label="Tür" value={w.part_of_speech} />
-          <Field label="İngilizce" value={w.meaning_en} />
-          <Field label="Präteritum" value={w.praeteritum} />
-          <Field label="Perfekt" value={w.perfekt} />
-          <Field label="Rektion" value={w.rektion} />
-          <Field label="Ayrılabilir" value={w.separable == null ? null : w.separable ? "evet" : "hayır"} />
+          <Field label={t.word.plural} value={w.plural} />
+          <Field label={t.word.partOfSpeech} value={w.part_of_speech} />
+          <Field label={t.word.english} value={w.meaning_en} />
+          <Field label={t.word.praeteritum} value={w.praeteritum} />
+          <Field label={t.word.perfekt} value={w.perfekt} />
+          <Field label={t.word.rektion} value={w.rektion} />
+          <Field
+            label={t.word.separable}
+            value={w.separable == null ? null : w.separable ? t.word.yes : t.word.no}
+          />
         </div>
 
         {w.word_family && w.word_family.length > 0 && (
@@ -99,7 +99,7 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
         {w.example_de && (
           <div className="mt-2 flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-4 text-sm">
             <div className="flex-1 space-y-1">
-              <p className="font-medium text-white">"{w.example_de}"</p>
+              <p className="font-medium text-white">&ldquo;{w.example_de}&rdquo;</p>
               {w.example_tr && <p className="text-neutral-400 text-xs">{w.example_tr}</p>}
             </div>
             <SpeakButton text={w.example_de} />
@@ -109,30 +109,30 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
 
       {/* Review History */}
       <div className="flex flex-col gap-4">
-        <h2 className="font-display text-xl font-bold text-white">Tekrar Geçmişi</h2>
+        <h2 className="font-display text-xl font-bold text-white">{t.word.history}</h2>
         {reviews && reviews.length > 0 ? (
           <div className="overflow-x-auto rounded-2xl border border-white/10 bg-[#101116]/80 backdrop-blur-md">
             <table className="w-full text-left text-sm text-neutral-200">
               <thead className="border-b border-white/10 bg-white/[0.02] text-xs font-semibold text-neutral-400 uppercase tracking-wider">
                 <tr>
-                  <th className="py-3 px-4">Tarih</th>
-                  <th className="py-3 px-4">Tür</th>
-                  <th className="py-3 px-4">Sonuç</th>
-                  <th className="py-3 px-4">Ustalık</th>
+                  <th className="py-3 px-4">{t.word.colDate}</th>
+                  <th className="py-3 px-4">{t.word.colType}</th>
+                  <th className="py-3 px-4">{t.word.colResult}</th>
+                  <th className="py-3 px-4">{t.word.colMastery}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
                 {(reviews as Review[]).map((r) => (
                   <tr key={r.id} className="hover:bg-white/[0.02]">
                     <td className="py-3 px-4 text-neutral-400 font-mono text-xs">
-                      {new Date(r.created_at).toLocaleDateString("tr-TR", { timeZone: APP_TIME_ZONE })}
+                      {new Date(r.created_at).toLocaleDateString(DATE_LOCALE[locale], { timeZone: APP_TIME_ZONE })}
                     </td>
-                    <td className="py-3 px-4">{r.question_type}</td>
+                    <td className="py-3 px-4">{t.questionTypes[r.question_type] ?? r.question_type}</td>
                     <td className="py-3 px-4">
                       {r.correct ? (
-                        <span className="text-emerald-400 font-semibold">Doğru ✓</span>
+                        <span className="text-emerald-400 font-semibold">{t.word.correct}</span>
                       ) : (
-                        <span className="text-rose-400 font-semibold">Yanlış ✗</span>
+                        <span className="text-rose-400 font-semibold">{t.word.wrong}</span>
                       )}
                     </td>
                     <td className="py-3 px-4 font-mono text-xs text-neutral-400">
@@ -146,7 +146,7 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
             </table>
           </div>
         ) : (
-          <p className="text-sm text-neutral-500">Henüz tekrar kaydı yok.</p>
+          <p className="text-sm text-neutral-500">{t.word.noHistory}</p>
         )}
       </div>
     </main>
