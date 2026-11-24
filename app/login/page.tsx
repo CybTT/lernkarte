@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoginForm } from "./login-form";
 
 export default async function LoginPage({
@@ -10,10 +9,6 @@ export default async function LoginPage({
 }) {
   const { next, code } = await searchParams;
 
-  // Defensive fallback: Supabase redirects here with ?code=... instead of
-  // /auth/callback when the callback URL isn't in the project's Redirect
-  // URLs allow-list (it falls back to the Site URL). Handle it here too so
-  // the signup email-confirmation flow still completes.
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
@@ -23,18 +18,28 @@ export default async function LoginPage({
   }
 
   return (
-    <main className="flex flex-1 items-center justify-center p-6">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">LernKarte</CardTitle>
-          <p className="text-sm text-muted-foreground text-center">
-            Almanca kelime dağarcığına giriş yap
+    <main className="flex flex-1 items-center justify-center p-6 min-h-screen">
+      <div className="polkadot-card relative w-full max-w-md p-8 sm:p-10 rounded-2xl flex flex-col items-center gap-6 text-center overflow-hidden">
+        
+        {/* Glow effect */}
+        <div className="absolute -top-20 -left-20 h-40 w-40 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+
+        <div className="flex flex-col items-center gap-2">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 border border-white/20 text-white mb-2">
+            <div className="h-3.5 w-3.5 rounded-full bg-gradient-to-r from-red-500 to-amber-400" />
+          </div>
+          <h1 className="font-display text-4xl font-bold tracking-tight text-white">
+            LernKarte
+          </h1>
+          <p className="text-sm text-neutral-400">
+            Almanca kelime öğrenme platformuna giriş yap
           </p>
-        </CardHeader>
-        <CardContent>
+        </div>
+
+        <div className="w-full text-left mt-2">
           <LoginForm next={next} />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </main>
   );
 }

@@ -3,9 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 
 function stripLeadingArticle(term: string): string {
   return term.replace(/^(der|die|das)\s+/i, "").trim();
@@ -74,7 +73,6 @@ export function AddWordForm() {
         if (report?.needs_review) {
           toast.error(`"${cleaned}" bir Almanca kelime olarak tanınmadı — sözlükten düzeltebilirsin.`);
         } else if (report?.corrected) {
-          // The user typed Turkish (or an inflected form); say what we stored.
           toast.success(`"${cleaned}" → ${report.term} olarak kaydedildi.`);
         } else {
           toast.success(`"${report?.term ?? cleaned}" zenginleştirildi.`);
@@ -84,16 +82,23 @@ export function AddWordForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2">
-      <Input
+    <form onSubmit={handleSubmit} className="flex gap-3 w-full">
+      <input
+        type="text"
         value={term}
         onChange={(e) => setTerm(e.target.value)}
-        placeholder="Kelime ekle (örn. Haus)"
+        placeholder="Yeni Almanca kelime ekle (örn. Haus)..."
         disabled={busy}
+        className="flex-1 rounded-full border border-white/10 bg-[#121318] px-5 py-3 text-sm text-white placeholder:text-neutral-500 focus:border-white/30 focus:outline-none transition-all shadow-inner"
       />
-      <Button type="submit" disabled={busy || !term.trim()}>
-        Ekle
-      </Button>
+      <button
+        type="submit"
+        disabled={busy || !term.trim()}
+        className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white px-6 py-3 text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105"
+      >
+        <Plus className="h-4 w-4" />
+        <span>Ekle</span>
+      </button>
     </form>
   );
 }

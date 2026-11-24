@@ -1,11 +1,11 @@
 const DAYS = 90;
 
 function bucket(count: number): string {
-  if (count === 0) return "bg-secondary";
-  if (count < 5) return "bg-brand/25";
-  if (count < 10) return "bg-brand/50";
-  if (count < 20) return "bg-brand/75";
-  return "bg-brand";
+  if (count === 0) return "bg-white/5";
+  if (count < 5) return "bg-amber-500/30";
+  if (count < 10) return "bg-amber-500/60";
+  if (count < 20) return "bg-amber-500/85";
+  return "bg-amber-400 shadow-[0_0_6px_rgba(255,204,0,0.8)]";
 }
 
 export function StreakHeatmap({ counts }: { counts: Record<string, number> }) {
@@ -18,12 +18,12 @@ export function StreakHeatmap({ counts }: { counts: Record<string, number> }) {
   });
 
   return (
-    <div className="flex flex-wrap gap-1" aria-label="Son 90 günlük çalışma geçmişi">
+    <div className="flex flex-wrap gap-1.5 justify-center sm:justify-start" aria-label="Son 90 günlük çalışma geçmişi">
       {cells.map((cell) => (
         <div
           key={cell.key}
           title={`${cell.key}: ${cell.count} tekrar`}
-          className={`size-2.5 rounded-sm ${bucket(cell.count)}`}
+          className={`h-3 w-3 rounded-sm transition-all hover:scale-125 ${bucket(cell.count)}`}
         />
       ))}
     </div>

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type Status = "connecting" | "connected" | "not-found";
 
@@ -58,28 +57,30 @@ export default function ExtensionConnectPage() {
   }, []);
 
   return (
-    <main className="flex flex-1 items-center justify-center p-6">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>LernKarte uzantısı</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {status === "connecting" && (
-            <p className="text-sm text-muted-foreground">Uzantıya bağlanılıyor…</p>
-          )}
-          {status === "connected" && (
-            <p className="text-sm text-article-das">
-              Bağlandı ✓ Bu sekmeyi kapatabilirsin, uzantı artık hesabını kullanabilir.
-            </p>
-          )}
-          {status === "not-found" && (
-            <p className="text-sm text-article-die">
-              Uzantı bulunamadı. LernKarte Chrome uzantısının yüklü ve etkin olduğundan emin ol,
-              sonra bu sayfayı yenile.
-            </p>
-          )}
-        </CardContent>
-      </Card>
+    <main className="flex flex-1 items-center justify-center p-6 min-h-[70vh]">
+      <div className="polkadot-card flex flex-col items-center gap-6 p-8 rounded-2xl max-w-md w-full text-center">
+        <h1 className="font-display text-3xl font-bold text-white">LernKarte Uzantısı</h1>
+        
+        {status === "connecting" && (
+          <p className="text-sm text-neutral-400 animate-pulse">
+            Uzantıya bağlanılıyor…
+          </p>
+        )}
+        {status === "connected" && (
+          <div className="flex flex-col gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-4 text-emerald-300 text-sm">
+            <span className="font-bold">Bağlandı ✓</span>
+            <span>Bu sekmeyi kapatabilirsin, uzantı artık hesabını kullanabilir.</span>
+          </div>
+        )}
+        {status === "not-found" && (
+          <div className="flex flex-col gap-2 rounded-xl bg-rose-500/10 border border-rose-500/30 p-4 text-rose-300 text-sm">
+            <span className="font-bold">Uzantı Bulunamadı</span>
+            <span>
+              LernKarte Chrome uzantısının yüklü ve etkin olduğundan emin ol, sonra bu sayfayı yenile.
+            </span>
+          </div>
+        )}
+      </div>
     </main>
   );
 }

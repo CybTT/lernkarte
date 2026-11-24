@@ -3,9 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 type Mode = "signin" | "signup";
 type Status = "idle" | "busy" | "error" | "confirm-email";
@@ -45,7 +42,6 @@ export function LoginForm({ next }: { next?: string }) {
       return;
     }
 
-    // signup
     const redirectTo = new URL("/auth/callback", window.location.origin);
     if (next) redirectTo.searchParams.set("next", next);
     const { data, error } = await supabase.auth.signUp({
@@ -59,7 +55,6 @@ export function LoginForm({ next }: { next?: string }) {
       return;
     }
     if (data.session) {
-      // Email confirmation is disabled on this project — already logged in.
       router.push(next ?? "/");
       router.refresh();
       return;
@@ -69,30 +64,36 @@ export function LoginForm({ next }: { next?: string }) {
 
   if (status === "confirm-email") {
     return (
-      <p className="text-sm text-muted-foreground text-center">
-        <strong className="text-foreground">{email}</strong> adresine bir onay bağlantısı
+      <p className="text-sm text-neutral-300 text-center">
+        <strong className="text-white">{email}</strong> adresine bir onay bağlantısı
         gönderdik. Onayladıktan sonra giriş yapabilirsin.
       </p>
     );
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="email">E-posta</Label>
-          <Input
+    <div className="flex flex-col gap-4 w-full">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="email" className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
+            E-posta
+          </label>
+          <input
             id="email"
             type="email"
             required
             placeholder="sen@ornek.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            className="w-full rounded-xl border border-white/10 bg-[#121318] p-3 text-sm text-white placeholder:text-neutral-500 focus:border-white/30 focus:outline-none transition-all"
           />
         </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="password">Şifre</Label>
-          <Input
+
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="password" className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
+            Şifre
+          </label>
+          <input
             id="password"
             type="password"
             required
@@ -100,24 +101,32 @@ export function LoginForm({ next }: { next?: string }) {
             placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className="w-full rounded-xl border border-white/10 bg-[#121318] p-3 text-sm text-white placeholder:text-neutral-500 focus:border-white/30 focus:outline-none transition-all"
           />
         </div>
-        <Button type="submit" disabled={status === "busy"} className="w-full">
+
+        <button
+          type="submit"
+          disabled={status === "busy"}
+          className="mt-2 w-full rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white py-3 text-sm font-medium transition-all disabled:opacity-40 hover:scale-[1.02]"
+        >
           {status === "busy"
             ? mode === "signin"
               ? "Giriş yapılıyor…"
               : "Hesap oluşturuluyor…"
             : mode === "signin"
-              ? "Giriş yap"
-              : "Hesap oluştur"}
-        </Button>
+              ? "Giriş Yap"
+              : "Hesap Oluştur"}
+        </button>
+
         {status === "error" && error && (
-          <p className="text-sm text-destructive text-center">{error}</p>
+          <p className="text-sm text-rose-400 text-center font-medium">{error}</p>
         )}
       </form>
+
       <button
         type="button"
-        className="text-sm text-muted-foreground hover:text-foreground hover:underline"
+        className="text-xs text-neutral-400 hover:text-white transition-colors text-center mt-2"
         onClick={() => {
           setMode(mode === "signin" ? "signup" : "signin");
           setStatus("idle");

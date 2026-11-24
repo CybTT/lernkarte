@@ -5,12 +5,9 @@ import type { StudyItem, Word } from "@/lib/types";
 import { answersMatch, makeCloze } from "@/lib/germanMatch";
 import { ArticleBadge } from "@/components/ArticleBadge";
 import { SpeakButton } from "@/components/SpeakButton";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 
 export interface StudyCardAnswer {
   correct: boolean;
-  /** Set for translate answers, whose correctness is judged async by /api/grade. */
   pendingGrade?: Promise<{ correct: boolean; feedback: string }>;
 }
 
@@ -20,16 +17,8 @@ interface StudyCardProps {
   onAnswer: (answer: StudyCardAnswer) => void;
 }
 
-/**
- * Multiple choice runs Turkish -> German: the meaning is the prompt and the
- * options are German words. The three wrong options are drawn server-side from
- * the shared dictionary_pool (same part of speech, similar length).
- */
 function MultipleChoiceQuestion({ item, disabled, onAnswer }: StudyCardProps) {
   const { word, options = [] } = item;
-
-  // The correct option is capitalised server-side for nouns, so compare
-  // case-insensitively (but not umlaut-folded — "schon" must not match "schön").
   const isCorrect = (option: string) => option.toLowerCase() === word.term.toLowerCase();
 
   useEffect(() => {
@@ -45,24 +34,29 @@ function MultipleChoiceQuestion({ item, disabled, onAnswer }: StudyCardProps) {
   }, [options, word.term, disabled, onAnswer]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="polkadot-card flex flex-col gap-8 p-8 sm:p-10 rounded-2xl w-full max-w-xl mx-auto">
       <div className="flex flex-col items-center gap-2 text-center">
-        <p className="text-sm text-muted-foreground">Bunun Almancası hangisi?</p>
-        <p className="text-3xl font-semibold">{word.meaning_tr}</p>
+        <span className="text-xs font-semibold tracking-wider uppercase text-neutral-400">
+          Bunun Almancası hangisi?
+        </span>
+        <h2 className="font-display text-3xl sm:text-4xl font-bold text-white mt-1">
+          {word.meaning_tr}
+        </h2>
       </div>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {options.map((opt, i) => (
-          <Button
+          <button
             key={opt + i}
-            variant="secondary"
-            size="lg"
             disabled={disabled}
-            className="h-auto justify-start whitespace-normal py-3 text-left"
             onClick={() => onAnswer({ correct: isCorrect(opt) })}
+            className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-4 text-left font-medium text-white transition-all hover:bg-white/10 hover:border-white/20 active:scale-95 disabled:opacity-40"
           >
-            <span className="mr-2 text-muted-foreground">{i + 1}</span>
-            {opt}
-          </Button>
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-xs font-mono text-neutral-300">
+              {i + 1}
+            </span>
+            <span className="text-base">{opt}</span>
+          </button>
         ))}
       </div>
     </div>
@@ -91,38 +85,47 @@ function FlashcardQuestion({ item, disabled, onAnswer }: StudyCardProps) {
   }, [revealed, disabled, onAnswer]);
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-center gap-2 text-3xl font-semibold">
-        <ArticleBadge article={word.article} />
+    <div className="polkadot-card flex flex-col gap-8 p-8 sm:p-10 rounded-2xl w-full max-w-xl mx-auto text-center">
+      <div className="flex items-center justify-center gap-3 text-4xl sm:text-5xl font-display font-bold text-white">
+        <ArticleBadge article={word.article} className="text-2xl sm:text-3xl" />
         <span>{word.term}</span>
         <SpeakButton text={word.term} />
       </div>
 
       {!revealed ? (
-        <div className="flex flex-col items-center gap-3">
-          <Button onClick={() => setRevealed(true)} disabled={disabled}>
+        <div className="flex flex-col items-center gap-3 mt-4">
+          <button
+            onClick={() => setRevealed(true)}
+            disabled={disabled}
+            className="rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white px-8 py-3 text-sm font-medium transition-all hover:scale-105"
+          >
             Cevabı göster (Space)
-          </Button>
+          </button>
         </div>
       ) : (
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col items-center gap-1 text-center">
-            <p className="text-xl">{word.meaning_tr ?? "—"}</p>
+        <div className="flex flex-col gap-6 mt-2">
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-2xl font-medium text-white">{word.meaning_tr ?? "—"}</p>
             {word.example_de && (
-              <p className="text-sm text-muted-foreground">{word.example_de}</p>
+              <p className="text-sm text-neutral-400 italic">"{word.example_de}"</p>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              variant="secondary"
+
+          <div className="grid grid-cols-2 gap-3">
+            <button
               disabled={disabled}
               onClick={() => onAnswer({ correct: false })}
+              className="rounded-xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 py-3 font-medium transition-all"
             >
               Bilmedim (1)
-            </Button>
-            <Button disabled={disabled} onClick={() => onAnswer({ correct: true })}>
+            </button>
+            <button
+              disabled={disabled}
+              onClick={() => onAnswer({ correct: true })}
+              className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 py-3 font-medium transition-all"
+            >
               Bildim (2)
-            </Button>
+            </button>
           </div>
         </div>
       )}
@@ -154,25 +157,31 @@ function TypingLikeQuestion({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+    <form onSubmit={handleSubmit} className="polkadot-card flex flex-col gap-6 p-8 sm:p-10 rounded-2xl w-full max-w-xl mx-auto">
       <div className="flex flex-col items-center gap-2 text-center">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 text-xl font-medium text-white">
           {word.article && <ArticleBadge article={word.article} />}
-          <p className="text-xl">{prompt}</p>
+          <p>{prompt}</p>
         </div>
-        {hint && <p className="text-sm text-muted-foreground">{hint}</p>}
+        {hint && <p className="text-sm text-neutral-400">{hint}</p>}
       </div>
-      <Input
+
+      <input
         autoFocus
         value={value}
         onChange={(e) => setValue(e.target.value)}
         disabled={disabled}
-        placeholder="Almanca yaz…"
-        className="text-center text-lg"
+        placeholder="Almanca yanıtınızı yazın..."
+        className="w-full rounded-xl border border-white/10 bg-[#121318] p-4 text-center text-lg text-white placeholder:text-neutral-500 focus:border-white/30 focus:outline-none transition-all"
       />
-      <Button type="submit" disabled={disabled || !value.trim()}>
+
+      <button
+        type="submit"
+        disabled={disabled || !value.trim()}
+        className="rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white py-3 text-sm font-medium transition-all disabled:opacity-40"
+      >
         Gönder (Enter)
-      </Button>
+      </button>
     </form>
   );
 }
@@ -194,7 +203,6 @@ function ClozeQuestion({ item, disabled, onAnswer }: StudyCardProps) {
     );
   }
 
-  // Fallback when we don't have a usable example sentence yet.
   return (
     <TypingLikeQuestion
       prompt={`"${word.meaning_tr}" kelimesinin Almancası ne?`}
@@ -243,22 +251,30 @@ function TranslateQuestion({ item, disabled, onAnswer }: StudyCardProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+    <form onSubmit={handleSubmit} className="polkadot-card flex flex-col gap-6 p-8 sm:p-10 rounded-2xl w-full max-w-xl mx-auto">
       <div className="flex flex-col items-center gap-2 text-center">
-        <p className="text-sm text-muted-foreground">Almancaya çevir:</p>
-        <p className="text-xl">{word.example_tr ?? word.meaning_tr}</p>
+        <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
+          Almancaya çevir:
+        </span>
+        <p className="text-xl font-medium text-white">{word.example_tr ?? word.meaning_tr}</p>
       </div>
-      <Input
+
+      <input
         autoFocus
         value={value}
         onChange={(e) => setValue(e.target.value)}
         disabled={disabled}
-        placeholder="Almanca cümle yaz…"
-        className="text-center text-lg"
+        placeholder="Almanca cümle yaz..."
+        className="w-full rounded-xl border border-white/10 bg-[#121318] p-4 text-center text-lg text-white placeholder:text-neutral-500 focus:border-white/30 focus:outline-none transition-all"
       />
-      <Button type="submit" disabled={disabled || !value.trim()}>
+
+      <button
+        type="submit"
+        disabled={disabled || !value.trim()}
+        className="rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white py-3 text-sm font-medium transition-all disabled:opacity-40"
+      >
         Gönder (Enter)
-      </Button>
+      </button>
     </form>
   );
 }
