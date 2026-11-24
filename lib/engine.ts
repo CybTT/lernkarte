@@ -24,6 +24,8 @@ export const QUESTION_WEIGHTS: Record<QuestionType, number> = {
   cloze: 1.0,
   typing: 1.5,
   translate: 2.0,
+  // Using the word correctly in your own sentence is the strongest evidence.
+  sentence: 2.0,
 };
 
 // ============================================================

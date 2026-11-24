@@ -92,7 +92,7 @@ create table if not exists reviews (
   user_id         uuid not null references profiles (id) on delete cascade,
   created_at      timestamptz not null default now(),
   question_type   text not null check (
-    question_type in ('match', 'cloze', 'typing', 'translate', 'multiple_choice', 'flashcard')
+    question_type in ('match', 'cloze', 'typing', 'translate', 'multiple_choice', 'flashcard', 'sentence')
   ),
   correct         boolean not null,
   response_ms     int,
@@ -156,4 +156,37 @@ create policy "words: owner delete" on words
 create policy "reviews: owner select" on reviews
   for select using (user_id = auth.uid());
 create policy "reviews: owner insert" on reviews
+  for insert with check (user_id = auth.uid());
+
+-- ============================================================
+-- sentence_attempts: every sentence the learner wrote and Claude's feedback
+-- ============================================================
+create table if not exists sentence_attempts (
+  id            uuid primary key default gen_random_uuid(),
+  user_id       uuid not null references profiles (id) on delete cascade,
+  created_at    timestamptz not null default now(),
+  -- Groups the first try and the optional second try of one task.
+  task_id       uuid not null,
+  attempt_no    smallint not null check (attempt_no in (1, 2)),
+  word_ids      uuid[] not null,
+  context       text not null,
+  grammar_goal  text,
+  sentence      text not null,
+  verdict       text not null check (verdict in ('correct', 'minor', 'major')),
+  -- Error categories found, for the statistics screen.
+  error_types   text[] not null default '{}',
+  feedback      jsonb not null
+);
+
+create index if not exists sentence_attempts_user_created_idx
+  on sentence_attempts (user_id, created_at desc);
+
+alter table sentence_attempts enable row level security;
+
+drop policy if exists "sentence_attempts: owner select" on sentence_attempts;
+create policy "sentence_attempts: owner select" on sentence_attempts
+  for select using (user_id = auth.uid());
+
+drop policy if exists "sentence_attempts: owner insert" on sentence_attempts;
+create policy "sentence_attempts: owner insert" on sentence_attempts
   for insert with check (user_id = auth.uid());

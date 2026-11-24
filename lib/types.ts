@@ -6,7 +6,9 @@ export type QuestionType =
   | "cloze"
   | "typing"
   | "translate"
-  | "flashcard";
+  | "flashcard"
+  /** The word was used in a free sentence ("Cümle Kur"). */
+  | "sentence";
 export type PartOfSpeech = "noun" | "verb" | "adjective" | "adverb" | "other";
 export type Level = "A1" | "A2" | "B1";
 

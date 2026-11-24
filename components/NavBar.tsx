@@ -17,6 +17,7 @@ export function NavBar() {
     { href: "/", label: t.nav.dashboard },
     { href: "/dictionary", label: t.nav.dictionary },
     { href: "/study", label: t.nav.study },
+    { href: "/sentence", label: t.nav.sentence },
     { href: "/extension-connect", label: t.nav.extension },
   ];
 
@@ -29,8 +30,8 @@ export function NavBar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#07080a]/80 backdrop-blur-xl">
-      {/* On phones the links drop to their own full-width row under the logo. */}
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-y-3 px-4 py-3 sm:flex-nowrap sm:px-6 sm:py-4">
+      {/* Below desktop width the links drop to their own full-width row under the logo. */}
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-y-3 px-4 py-3 sm:px-6 lg:flex-nowrap lg:py-4">
         
         {/* Polkadot Style Logo */}
         <Link href="/" className="flex items-center gap-2.5 group">
@@ -43,15 +44,16 @@ export function NavBar() {
         </Link>
 
         {/* Navigation Links */}
-        <nav className="order-last grid w-full grid-cols-4 gap-1 sm:order-none sm:flex sm:w-auto sm:items-center sm:gap-2">
+        <nav className="order-last grid w-full grid-cols-5 gap-0.5 sm:gap-2 lg:order-none lg:flex lg:w-auto lg:items-center">
           {LINKS.map((link) => {
-            const isActive = pathname === link.href;
+            const isActive =
+              link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
             return (
               <Link
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "rounded-full px-2 py-1.5 text-center text-xs font-medium transition-all duration-200 sm:px-4 sm:text-sm",
+                  "truncate rounded-full px-1 py-1.5 text-center text-[11px] font-medium transition-all duration-200 sm:text-sm lg:px-4",
                   isActive
                     ? "bg-white/15 text-white border border-white/20 shadow-sm"
                     : "text-neutral-400 hover:text-neutral-100 hover:bg-white/5"
