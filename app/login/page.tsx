@@ -1,19 +1,21 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { LoginForm } from "./login-form";
+import { safeNextPath } from "@/lib/safeNext";
 
 export default async function LoginPage({
   searchParams,
 }: {
   searchParams: Promise<{ next?: string; code?: string; error?: string }>;
 }) {
-  const { next, code } = await searchParams;
+  const { next: rawNext, code } = await searchParams;
+  const next = safeNextPath(rawNext);
 
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      redirect(next ?? "/");
+      redirect(next);
     }
   }
 

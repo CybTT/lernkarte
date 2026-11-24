@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { safeNextPath } from "@/lib/safeNext";
 
 type Mode = "signin" | "signup";
 type Status = "idle" | "busy" | "error" | "confirm-email";
@@ -16,7 +17,8 @@ function friendlyError(message: string): string {
   return message;
 }
 
-export function LoginForm({ next }: { next?: string }) {
+export function LoginForm({ next: rawNext }: { next?: string }) {
+  const next = safeNextPath(rawNext);
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -37,13 +39,13 @@ export function LoginForm({ next }: { next?: string }) {
         setError(friendlyError(error.message));
         return;
       }
-      router.push(next ?? "/");
+      router.push(next);
       router.refresh();
       return;
     }
 
     const redirectTo = new URL("/auth/callback", window.location.origin);
-    if (next) redirectTo.searchParams.set("next", next);
+    if (next !== "/") redirectTo.searchParams.set("next", next);
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -55,7 +57,7 @@ export function LoginForm({ next }: { next?: string }) {
       return;
     }
     if (data.session) {
-      router.push(next ?? "/");
+      router.push(next);
       router.refresh();
       return;
     }
