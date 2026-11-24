@@ -1,8 +1,4 @@
-"use client";
-
-import { useState } from "react";
-import { Sparkles, Trophy, Award, Sliders, Flag } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Flag } from "lucide-react";
 
 interface GermanyFlagBlankProps {
   /** Real progress percentage calculated from user's words (0 to 100) */
@@ -18,14 +14,7 @@ export function GermanyFlagBlank({
   masteredWords,
   learningWords,
 }: GermanyFlagBlankProps) {
-  const [customProgress, setCustomProgress] = useState<number | null>(null);
-  const [interactiveMode, setInteractiveMode] = useState(false);
-
-  // Current percentage (0 to 100)
-  const progressPercent = Math.min(
-    100,
-    Math.max(0, interactiveMode && customProgress !== null ? customProgress : realProgress)
-  );
+  const progressPercent = Math.min(100, Math.max(0, realProgress));
 
   return (
     <div className="w-full max-w-2xl mx-auto flex flex-col items-center gap-6">
@@ -41,7 +30,7 @@ export function GermanyFlagBlank({
         />
 
         {/* Top Card Bar: Badges */}
-        <div className="relative z-10 flex items-center justify-between gap-4 mb-6">
+        <div className="relative z-10 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 mb-6">
           <div className="flex items-center gap-2">
             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400">
               <Flag className="h-3.5 w-3.5" />
@@ -51,27 +40,9 @@ export function GermanyFlagBlank({
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-neutral-400">
-              {masteredWords} / {totalWords} Kelime Tamam
-            </span>
-            <button
-              onClick={() => {
-                setInteractiveMode(!interactiveMode);
-                if (!interactiveMode) setCustomProgress(realProgress);
-              }}
-              title="Test sliderını aç/kapat"
-              className={cn(
-                "flex items-center gap-1 rounded-full px-2.5 py-1 text-xs transition-all border",
-                interactiveMode
-                  ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
-                  : "bg-white/5 text-neutral-400 border-white/10 hover:text-white"
-              )}
-            >
-              <Sliders className="h-3 w-3" />
-              <span>{interactiveMode ? "Simülasyon" : "Canlı"}</span>
-            </button>
-          </div>
+          <span className="text-xs text-neutral-400">
+            {masteredWords} / {totalWords} Kelime Tamam
+          </span>
         </div>
 
         {/* MAIN GERMANY FLAG BLANK CONTAINER */}
@@ -136,24 +107,6 @@ export function GermanyFlagBlank({
             </div>
 
           </div>
-
-          {/* Progress Indicator Slider (if interactive simulation enabled) */}
-          {interactiveMode && (
-            <div className="w-full mt-4 flex flex-col gap-1 bg-white/5 p-3 rounded-lg border border-white/10">
-              <div className="flex justify-between text-xs text-neutral-300">
-                <span>Test Simülatörü: Gelişim Düzeyi</span>
-                <span className="font-mono text-amber-400 font-bold">%{Math.round(progressPercent)}</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={progressPercent}
-                onChange={(e) => setCustomProgress(Number(e.target.value))}
-                className="w-full h-1.5 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-amber-400"
-              />
-            </div>
-          )}
 
         </div>
 
