@@ -19,16 +19,15 @@ export interface SubmitAnswerResult {
 
 export async function submitAnswer(input: SubmitAnswerInput): Promise<SubmitAnswerResult> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthorized");
+  const { data: auth } = await supabase.auth.getClaims();
+  const userId = auth?.claims?.sub;
+  if (!userId) throw new Error("Unauthorized");
 
   const { data: word, error: wordError } = await supabase
     .from("words")
     .select("*")
     .eq("id", input.wordId)
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .single();
   if (wordError || !word) throw new Error("Word not found");
 
@@ -64,7 +63,7 @@ export async function submitAnswer(input: SubmitAnswerInput): Promise<SubmitAnsw
 
   await supabase.from("reviews").insert({
     word_id: input.wordId,
-    user_id: user.id,
+    user_id: userId,
     question_type: input.questionType,
     correct: input.correct,
     response_ms: input.responseMs,

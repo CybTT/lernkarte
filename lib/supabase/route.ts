@@ -1,6 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
 import { createClient as createSupabaseClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { User } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 
@@ -9,10 +8,11 @@ import type { NextRequest } from "next/server";
  * - Web app requests carry the session as cookies.
  * - The Chrome extension carries it as `Authorization: Bearer <access_token>`.
  * Either way, the returned client is scoped to that user's token, so RLS applies.
+ * The token is verified locally (signature check), not by calling Supabase Auth.
  */
 export async function getRouteSupabase(
   request: NextRequest
-): Promise<{ supabase: SupabaseClient; user: User | null }> {
+): Promise<{ supabase: SupabaseClient; user: { id: string } | null }> {
   const authHeader = request.headers.get("authorization");
   const bearer = authHeader?.match(/^Bearer\s+(.+)$/i)?.[1];
 
@@ -25,10 +25,8 @@ export async function getRouteSupabase(
         auth: { autoRefreshToken: false, persistSession: false },
       }
     );
-    const {
-      data: { user },
-    } = await supabase.auth.getUser(bearer);
-    return { supabase, user };
+    const { data } = await supabase.auth.getClaims(bearer);
+    return { supabase, user: userFrom(data?.claims?.sub) };
   }
 
   const cookieStore = await cookies();
@@ -46,8 +44,10 @@ export async function getRouteSupabase(
       },
     }
   );
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return { supabase, user };
+  const { data } = await supabase.auth.getClaims();
+  return { supabase, user: userFrom(data?.claims?.sub) };
+}
+
+function userFrom(id: string | undefined): { id: string } | null {
+  return id ? { id } : null;
 }
