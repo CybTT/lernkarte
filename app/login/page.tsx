@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { LoginForm } from "./login-form";
@@ -8,9 +9,9 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; code?: string; error?: string }>;
+  searchParams: Promise<{ next?: string; code?: string; error?: string; mode?: string }>;
 }) {
-  const { next: rawNext, code } = await searchParams;
+  const { next: rawNext, code, mode } = await searchParams;
   const next = safeNextPath(rawNext);
   const { t } = await getI18n();
 
@@ -31,20 +32,22 @@ export default async function LoginPage({
         {/* Glow effect */}
         <div className="absolute -top-20 -left-20 h-40 w-40 rounded-full bg-white/10 blur-3xl pointer-events-none" />
 
-        <div className="flex flex-col items-center gap-2">
+        <Link href="/" className="flex flex-col items-center gap-2">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 border border-white/20 text-white mb-2">
             <div className="h-3.5 w-3.5 rounded-full bg-gradient-to-r from-red-500 to-amber-400" />
           </div>
           <h1 className="font-display text-4xl font-bold tracking-tight text-white">
             LernKarte
           </h1>
+        </Link>
+        <div className="-mt-4 flex flex-col items-center gap-2">
           <p className="text-sm text-neutral-400">
             {t.login.subtitle}
           </p>
         </div>
 
         <div className="w-full text-left mt-2">
-          <LoginForm next={next} />
+          <LoginForm next={next} initialMode={mode === "signup" ? "signup" : "signin"} />
         </div>
       </div>
     </main>

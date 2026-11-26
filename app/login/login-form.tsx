@@ -19,10 +19,16 @@ function friendlyError(message: string, t: Dictionary["login"]): string {
   return message;
 }
 
-export function LoginForm({ next: rawNext }: { next?: string }) {
+export function LoginForm({
+  next: rawNext,
+  initialMode = "signin",
+}: {
+  next?: string;
+  initialMode?: Mode;
+}) {
   const next = safeNextPath(rawNext);
   const { t } = useI18n();
-  const [mode, setMode] = useState<Mode>("signin");
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<Status>("idle");
@@ -48,7 +54,7 @@ export function LoginForm({ next: rawNext }: { next?: string }) {
     }
 
     const redirectTo = new URL("/auth/callback", window.location.origin);
-    if (next !== "/") redirectTo.searchParams.set("next", next);
+    if (next !== "/dashboard") redirectTo.searchParams.set("next", next);
     const { data, error } = await supabase.auth.signUp({
       email,
       password,

@@ -145,42 +145,7 @@ export function SentenceBuilder({
         </div>
       </div>
 
-      {/* Task */}
-      <section className="polkadot-card flex flex-col gap-5 rounded-2xl p-6 sm:p-8">
-        <div className="flex flex-col gap-1.5">
-          <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
-            {t.sentence.situation}
-          </span>
-          <p className="text-lg font-medium text-white">{task.context}</p>
-        </div>
-
-        {task.grammarGoal && (
-          <div className="flex items-center gap-2 self-start rounded-full border border-sky-500/30 bg-sky-500/10 px-3 py-1.5 text-xs text-sky-200">
-            <Target className="h-3.5 w-3.5 shrink-0" />
-            <span>
-              <span className="font-semibold">{t.sentence.grammarGoal}:</span> {task.grammarGoal.instruction}
-            </span>
-          </div>
-        )}
-
-        <div className="flex flex-col gap-2">
-          <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
-            {t.sentence.targetWords}
-          </span>
-          <div className="flex flex-wrap gap-2">
-            {task.words.map((w) => (
-              <span
-                key={w.id}
-                className="inline-flex items-baseline gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5"
-              >
-                <ArticleBadge article={w.article} className="text-sm" />
-                <span className="font-display text-lg font-bold text-white">{w.term}</span>
-                {w.meaning_tr && <span className="text-xs text-neutral-400">· {w.meaning_tr}</span>}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
+      <TaskCard t={t} task={task} />
 
       {/* Writing */}
       {phase !== "feedback" && (
@@ -231,7 +196,7 @@ export function SentenceBuilder({
 
       {/* Feedback */}
       {phase === "feedback" && result && evaluation && (
-        <Feedback
+        <SentenceFeedback
           t={t}
           result={result}
           evaluation={evaluation}
@@ -247,7 +212,49 @@ export function SentenceBuilder({
   );
 }
 
-function Feedback({
+/** The task: situation, optional grammar goal, and the words to use. */
+export function TaskCard({ t, task }: { t: Dictionary; task: Pick<SentenceTask, "context" | "grammarGoal" | "words"> }) {
+  return (
+    <section className="polkadot-card flex flex-col gap-5 rounded-2xl p-6 sm:p-8">
+      <div className="flex flex-col gap-1.5">
+        <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
+          {t.sentence.situation}
+        </span>
+        <p className="text-lg font-medium text-white">{task.context}</p>
+      </div>
+
+      {task.grammarGoal && (
+        <div className="flex items-center gap-2 self-start rounded-full border border-sky-500/30 bg-sky-500/10 px-3 py-1.5 text-xs text-sky-200">
+          <Target className="h-3.5 w-3.5 shrink-0" />
+          <span>
+            <span className="font-semibold">{t.sentence.grammarGoal}:</span> {task.grammarGoal.instruction}
+          </span>
+        </div>
+      )}
+
+      <div className="flex flex-col gap-2">
+        <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
+          {t.sentence.targetWords}
+        </span>
+        <div className="flex flex-wrap gap-2">
+          {task.words.map((w) => (
+            <span
+              key={w.id}
+              className="inline-flex items-baseline gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5"
+            >
+              <ArticleBadge article={w.article} className="text-sm" />
+              <span className="font-display text-lg font-bold text-white">{w.term}</span>
+              {w.meaning_tr && <span className="text-xs text-neutral-400">· {w.meaning_tr}</span>}
+            </span>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** Claude's feedback on one sentence. `showActions: false` renders it for display only. */
+export function SentenceFeedback({
   t,
   result,
   evaluation,
@@ -255,18 +262,20 @@ function Feedback({
   onTryAgain,
   onReveal,
   onNext,
-  loadingNext,
-  problem,
+  loadingNext = false,
+  problem = null,
+  showActions = true,
 }: {
   t: Dictionary;
-  result: Result;
+  result: Pick<Result, "sentence" | "attemptNo" | "mastery">;
   evaluation: Evaluation;
   final: boolean;
-  onTryAgain: () => void;
-  onReveal: () => void;
-  onNext: () => void;
-  loadingNext: boolean;
-  problem: string | null;
+  onTryAgain?: () => void;
+  onReveal?: () => void;
+  onNext?: () => void;
+  loadingNext?: boolean;
+  problem?: string | null;
+  showActions?: boolean;
 }) {
   const verdictLabel = {
     correct: t.sentence.verdictCorrect,
@@ -367,43 +376,45 @@ function Feedback({
         </div>
       )}
 
-      <div className="flex flex-col gap-3">
-        {canRetry && <p className="text-center text-xs text-neutral-400">{t.sentence.tryAgainHint}</p>}
-        <div className="flex flex-wrap justify-center gap-3">
-          {canRetry && (
-            <>
+      {showActions && (
+        <div className="flex flex-col gap-3">
+          {canRetry && <p className="text-center text-xs text-neutral-400">{t.sentence.tryAgainHint}</p>}
+          <div className="flex flex-wrap justify-center gap-3">
+            {canRetry && (
+              <>
+                <button
+                  onClick={onTryAgain}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-6 py-2.5 text-sm font-medium text-white transition-all hover:bg-white/20"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  {t.sentence.tryAgain}
+                </button>
+                <button
+                  onClick={onReveal}
+                  className="rounded-full border border-white/10 bg-white/5 px-6 py-2.5 text-sm font-medium text-neutral-300 transition-all hover:bg-white/10"
+                >
+                  {t.sentence.showCorrection}
+                </button>
+              </>
+            )}
+            {!canRetry && (
               <button
-                onClick={onTryAgain}
-                className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-6 py-2.5 text-sm font-medium text-white transition-all hover:bg-white/20"
+                onClick={onNext}
+                disabled={loadingNext}
+                className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-6 py-2.5 text-sm font-medium text-white transition-all hover:bg-white/20 disabled:opacity-50"
               >
-                <RotateCcw className="h-4 w-4" />
-                {t.sentence.tryAgain}
+                {loadingNext ? t.common.loading : t.sentence.newTask}
+                <ArrowRight className="h-4 w-4" />
               </button>
-              <button
-                onClick={onReveal}
-                className="rounded-full border border-white/10 bg-white/5 px-6 py-2.5 text-sm font-medium text-neutral-300 transition-all hover:bg-white/10"
-              >
-                {t.sentence.showCorrection}
-              </button>
-            </>
-          )}
-          {!canRetry && (
-            <button
-              onClick={onNext}
-              disabled={loadingNext}
-              className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-6 py-2.5 text-sm font-medium text-white transition-all hover:bg-white/20 disabled:opacity-50"
-            >
-              {loadingNext ? t.common.loading : t.sentence.newTask}
-              <ArrowRight className="h-4 w-4" />
-            </button>
+            )}
+          </div>
+          {problem && (
+            <p role="alert" className="text-center text-sm text-amber-200">
+              {problem}
+            </p>
           )}
         </div>
-        {problem && (
-          <p role="alert" className="text-center text-sm text-amber-200">
-            {problem}
-          </p>
-        )}
-      </div>
+      )}
     </section>
   );
 }

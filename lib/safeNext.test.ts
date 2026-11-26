@@ -8,9 +8,9 @@ describe("safeNextPath", () => {
   });
 
   it("falls back for missing values", () => {
-    expect(safeNextPath(undefined)).toBe("/");
-    expect(safeNextPath(null)).toBe("/");
-    expect(safeNextPath("")).toBe("/");
+    expect(safeNextPath(undefined)).toBe("/dashboard");
+    expect(safeNextPath(null)).toBe("/dashboard");
+    expect(safeNextPath("")).toBe("/dashboard");
   });
 
   it.each([
@@ -23,7 +23,7 @@ describe("safeNextPath", () => {
     "@evil.example",
     "/\t/evil.example",
   ])("rejects off-site target %s", (next) => {
-    expect(safeNextPath(next)).toBe("/");
+    expect(safeNextPath(next)).toBe("/dashboard");
   });
 
   it("uses the given fallback", () => {

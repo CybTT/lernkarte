@@ -14,7 +14,7 @@ export function NavBar() {
   const { t } = useI18n();
 
   const LINKS = [
-    { href: "/", label: t.nav.dashboard },
+    { href: "/dashboard", label: t.nav.dashboard },
     { href: "/dictionary", label: t.nav.dictionary },
     { href: "/study", label: t.nav.study },
     { href: "/sentence", label: t.nav.sentence },
@@ -24,7 +24,7 @@ export function NavBar() {
   async function handleLogout() {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/login");
+    router.push("/");
     router.refresh();
   }
 
@@ -34,7 +34,7 @@ export function NavBar() {
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-y-3 px-4 py-3 sm:px-6 lg:flex-nowrap lg:py-4">
         
         {/* Polkadot Style Logo */}
-        <Link href="/" className="flex items-center gap-2.5 group">
+        <Link href="/dashboard" className="flex items-center gap-2.5 group">
           <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 border border-white/20 text-white transition-transform group-hover:scale-105">
             <div className="h-2.5 w-2.5 rounded-full bg-gradient-to-r from-red-500 to-amber-400" />
           </div>
@@ -46,8 +46,7 @@ export function NavBar() {
         {/* Navigation Links */}
         <nav className="order-last grid w-full grid-cols-5 gap-0.5 sm:gap-2 lg:order-none lg:flex lg:w-auto lg:items-center">
           {LINKS.map((link) => {
-            const isActive =
-              link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
+            const isActive = pathname.startsWith(link.href);
             return (
               <Link
                 key={link.href}

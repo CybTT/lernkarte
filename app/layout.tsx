@@ -20,9 +20,25 @@ const playfair = Playfair_Display({
   subsets: ["latin"],
 });
 
+const SITE_URL = "https://lernkartee.vercel.app";
+
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getI18n();
-  return { title: t.meta.title, description: t.meta.description };
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: t.meta.title,
+    description: t.meta.description,
+    // Link previews are in English for every audience.
+    openGraph: {
+      type: "website",
+      url: SITE_URL,
+      siteName: "LernKarte",
+      title: "LernKarte — Learn German vocabulary, then use it",
+      description:
+        "AI-enriched German vocabulary, spaced repetition, and explained feedback on the sentences you write. For Turkish speakers, A1–B1.",
+    },
+    twitter: { card: "summary_large_image" },
+  };
 }
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {

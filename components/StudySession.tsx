@@ -163,7 +163,7 @@ export function StudySession({ items }: { items: StudyItem[] }) {
             {t.nav.dictionary}
           </Link>
           <Link
-            href="/"
+            href="/dashboard"
             onClick={() => router.refresh()}
             className="rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white px-6 py-2.5 text-sm font-medium transition-all flex items-center gap-2"
           >

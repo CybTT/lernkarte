@@ -6,7 +6,7 @@ import { MeaningWithVariants } from "@/components/MeaningWithVariants";
 export function WordFullCard({ word }: { word: Word }) {
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#121318]/90 p-6 text-neutral-200">
-      <div className="flex items-center gap-3 text-2xl font-bold font-display text-white">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-2xl font-bold font-display text-white">
         <ArticleBadge article={word.article} className="text-xl" />
         <span>{word.term}</span>
         {word.plural && <span className="text-sm font-normal text-neutral-400 font-mono">Pl. {word.plural}</span>}
