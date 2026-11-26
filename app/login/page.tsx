@@ -24,29 +24,23 @@ export default async function LoginPage({
   }
 
   return (
-    <main className="flex flex-1 items-center justify-center p-6 min-h-screen">
-      <div className="polkadot-card relative w-full max-w-md p-8 sm:p-10 rounded-2xl flex flex-col items-center gap-6 text-center overflow-hidden">
-        
-        <LanguageSwitcher className="absolute right-4 top-4 z-10" />
-
-        {/* Glow effect */}
-        <div className="absolute -top-20 -left-20 h-40 w-40 rounded-full bg-white/10 blur-3xl pointer-events-none" />
-
-        <Link href="/" className="flex flex-col items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 border border-white/20 text-white mb-2">
-            <div className="h-3.5 w-3.5 rounded-full bg-gradient-to-r from-red-500 to-amber-400" />
-          </div>
-          <h1 className="font-display text-4xl font-bold tracking-tight text-white">
-            LernKarte
-          </h1>
-        </Link>
-        <div className="-mt-4 flex flex-col items-center gap-2">
-          <p className="text-sm text-neutral-400">
-            {t.login.subtitle}
-          </p>
+    <main className="flex min-h-screen flex-1 flex-col">
+      <header className="border-b border-border">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
+          <Link href="/" className="flex items-center gap-2.5 rounded-[3px]">
+            <span aria-hidden className="h-3 w-3 rounded-full bg-red" />
+            <span className="font-display text-xl font-bold">LernKarte</span>
+          </Link>
+          <LanguageSwitcher variant="plain" />
         </div>
+      </header>
 
-        <div className="w-full text-left mt-2">
+      <div className="mx-auto grid w-full max-w-6xl flex-1 items-center gap-12 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_minmax(0,28rem)] lg:gap-20">
+        <div>
+          <h1 className="max-w-[14ch] text-4xl font-bold leading-[1.05] sm:text-6xl">{t.landing.title}</h1>
+          <p className="mt-5 max-w-[48ch] text-muted-text">{t.login.subtitle}</p>
+        </div>
+        <div className="sheet sheet-in lg:rotate-[0.6deg]">
           <LoginForm next={next} initialMode={mode === "signup" ? "signup" : "signin"} />
         </div>
       </div>

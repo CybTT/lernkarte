@@ -31,7 +31,7 @@ export function LanguageSwitcher({
         "relative flex h-9 items-center gap-1.5 text-xs font-medium transition-colors focus-within:outline focus-within:outline-2 focus-within:outline-offset-2",
         variant === "pill"
           ? "rounded-full border border-white/10 bg-white/5 pl-2.5 pr-2 text-neutral-300 hover:bg-white/10 hover:text-white"
-          : "rounded-[3px] px-2 font-mono text-[#9c968b] hover:text-[#efe9de]",
+          : "rounded-[3px] px-2 font-mono text-muted-text hover:text-text",
         pending && "opacity-60",
         className
       )}

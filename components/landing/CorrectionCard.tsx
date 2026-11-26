@@ -48,10 +48,10 @@ export function CorrectionCard({
             >
               Ich habe im Urlaub mit{" "}
               <span className="relative inline-block">
-                <span className="line-through decoration-[#e2462c] decoration-2">meine</span>
+                <span className="pen-strike">meine</span>
                 <span
                   aria-hidden
-                  className="absolute -top-7 left-1 -rotate-3 whitespace-nowrap text-[1.6rem] font-bold text-[#e2462c]"
+                  className="pen-write absolute -top-7 left-1 -rotate-3 whitespace-nowrap text-[1.6rem] font-bold text-red"
                 >
                   meinem
                 </span>
@@ -60,7 +60,7 @@ export function CorrectionCard({
             </p>
             <p
               aria-hidden
-              className={`${handClassName} mt-2 text-right text-2xl font-bold text-[#e2462c] -rotate-2`}
+              className={`${handClassName} pen-write mt-2 -rotate-2 text-right text-2xl font-bold text-red [animation-delay:1300ms]`}
             >
               mit + Dativ!
             </p>

@@ -1,26 +1,33 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
+import { Bricolage_Grotesque, Caveat, Fragment_Mono, Fraunces } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { I18nProvider } from "@/components/I18nProvider";
 import { getI18n } from "@/lib/i18n/server";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  // latin-ext carries Turkish ğ, ş, ı, İ.
+// Every font loads latin-ext, which carries Turkish ğ, ş, ı, İ.
+const display = Fraunces({
+  variable: "--font-display",
   subsets: ["latin", "latin-ext"],
+  axes: ["SOFT", "WONK", "opsz"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  // latin-ext carries Turkish ğ, ş, ı, İ.
+const text = Bricolage_Grotesque({
+  variable: "--font-text",
   subsets: ["latin", "latin-ext"],
+  axes: ["opsz"],
 });
 
-const playfair = Playfair_Display({
-  variable: "--font-serif-display",
-  // latin-ext carries Turkish ğ, ş, ı, İ.
+const label = Fragment_Mono({
+  variable: "--font-label",
   subsets: ["latin", "latin-ext"],
+  weight: "400",
+});
+
+const handwriting = Caveat({
+  variable: "--font-handwriting",
+  subsets: ["latin", "latin-ext"],
+  weight: ["500", "700"],
 });
 
 const SITE_URL = "https://lernkartee.vercel.app";
@@ -49,9 +56,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang={locale}
-      className={`dark ${geistSans.variable} ${geistMono.variable} ${playfair.variable} h-full antialiased`}
+      className={`dark ${display.variable} ${text.variable} ${label.variable} ${handwriting.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#07080a] text-neutral-100 font-sans selection:bg-amber-500/20 selection:text-amber-200">
+      <body className="flex min-h-full flex-col selection:bg-red/30">
         <I18nProvider locale={locale}>
           {children}
           <Toaster />

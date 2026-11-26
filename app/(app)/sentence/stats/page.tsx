@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { createClient, requireUserId } from "@/lib/supabase/server";
 import { getI18n } from "@/lib/i18n/server";
 import { computeSentenceStats, type AttemptRow } from "@/lib/sentenceStats";
@@ -24,17 +23,13 @@ export default async function SentenceStatsPage() {
 
   const stats = computeSentenceStats((data ?? []) as AttemptRow[], new Date(), WEEKS);
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-4 py-10 sm:px-6">
+    <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-10 px-4 py-10 sm:px-6 lg:py-14">
       <div className="flex flex-col gap-3">
-        <Link
-          href="/sentence"
-          className="inline-flex w-fit items-center gap-1.5 text-xs font-medium text-neutral-400 transition-colors hover:text-white"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          {t.sentence.title}
+        <Link href="/sentence" className="link w-fit text-sm text-muted-text">
+          ← {t.sentence.title}
         </Link>
-        <h1 className="font-display text-4xl font-bold tracking-tight text-white">{t.stats.title}</h1>
-        <p className="text-sm text-neutral-400">
+        <h1 className="text-4xl font-bold sm:text-6xl">{t.stats.title}</h1>
+        <p className="max-w-[60ch] text-muted-text">
           {t.stats.subtitle} {t.stats.note}
         </p>
       </div>

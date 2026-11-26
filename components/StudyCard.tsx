@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { StudyItem, Word } from "@/lib/types";
+import type { QuestionType, StudyItem, Word } from "@/lib/types";
 import { answersMatch, makeCloze } from "@/lib/germanMatch";
 import { requestGrade, type GradeOutcome } from "@/lib/grading";
 import { useI18n } from "@/components/I18nProvider";
 import { fmt } from "@/lib/i18n";
 import { ArticleBadge } from "@/components/ArticleBadge";
 import { SpeakButton } from "@/components/SpeakButton";
+import { cn } from "@/lib/utils";
 
 export interface StudyCardAnswer {
   correct: boolean;
@@ -22,6 +23,27 @@ interface StudyCardProps {
   item: StudyItem;
   disabled: boolean;
   onAnswer: (answer: StudyCardAnswer) => void;
+}
+
+/** A German index card: red top rule with the question type, then the question. */
+function IndexCard({
+  type,
+  className,
+  children,
+}: {
+  type: QuestionType;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const { t } = useI18n();
+  return (
+    <section className={cn("sheet sheet-in mx-auto w-full max-w-xl", className)}>
+      <header className="sheet-head px-6 pb-2.5 pt-4">
+        <span className="label">{t.questionTypes[type]}</span>
+      </header>
+      <div className="px-6 pb-7 pt-6 sm:px-8">{children}</div>
+    </section>
+  );
 }
 
 function MultipleChoiceQuestion({ item, disabled, onAnswer }: StudyCardProps) {
@@ -42,32 +64,26 @@ function MultipleChoiceQuestion({ item, disabled, onAnswer }: StudyCardProps) {
   }, [options, word.term, disabled, onAnswer]);
 
   return (
-    <div className="polkadot-card flex flex-col gap-8 p-8 sm:p-10 rounded-2xl w-full max-w-xl mx-auto">
-      <div className="flex flex-col items-center gap-2 text-center">
-        <span className="text-xs font-semibold tracking-wider uppercase text-neutral-400">
-          {t.study.whichGerman}
-        </span>
-        <h2 className="font-display text-3xl sm:text-4xl font-bold text-white mt-1">
-          {word.meaning_tr}
-        </h2>
-      </div>
-
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <IndexCard type={item.question_type}>
+      <p className="label">{t.study.whichGerman}</p>
+      <h2 className="mt-2 text-4xl font-bold sm:text-5xl">{word.meaning_tr}</h2>
+      <ol className="mt-7 border-t border-paper-ink/15">
         {options.map((opt, i) => (
-          <button
-            key={opt + i}
-            disabled={disabled}
-            onClick={() => onAnswer({ correct: isCorrect(opt) })}
-            className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-4 text-left font-medium text-white transition-all hover:bg-white/10 hover:border-white/20 active:scale-95 disabled:opacity-40"
-          >
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-xs font-mono text-neutral-300">
-              {i + 1}
-            </span>
-            <span className="text-base">{opt}</span>
-          </button>
+          <li key={opt + i} className="border-b border-paper-ink/15">
+            <button
+              disabled={disabled}
+              onClick={() => onAnswer({ correct: isCorrect(opt) })}
+              className="group flex w-full items-baseline gap-4 rounded-[3px] py-3 text-left transition-colors hover:bg-paper-2 disabled:opacity-50"
+            >
+              <span className="w-4 font-mono text-xs text-muted-text group-hover:text-red">{i + 1}</span>
+              <span lang="de" className="font-display text-xl font-semibold">
+                {opt}
+              </span>
+            </button>
+          </li>
         ))}
-      </div>
-    </div>
+      </ol>
+    </IndexCard>
   );
 }
 
@@ -93,56 +109,74 @@ function FlashcardQuestion({ item, disabled, onAnswer }: StudyCardProps) {
     return () => window.removeEventListener("keydown", handleKey);
   }, [revealed, disabled, onAnswer]);
 
+  const term = (
+    <h2 lang="de" className="flex flex-wrap items-baseline gap-x-3 text-5xl font-bold [overflow-wrap:anywhere] sm:text-6xl">
+      <ArticleBadge article={word.article} className="text-3xl" />
+      <span className="min-w-0">{word.term}</span>
+    </h2>
+  );
+
+  // Both faces share one grid cell, so the card is as tall as the taller face.
   return (
-    <div className="polkadot-card flex flex-col gap-8 p-8 sm:p-10 rounded-2xl w-full max-w-xl mx-auto text-center">
-      <div className="flex flex-wrap items-center justify-center gap-3 text-4xl sm:text-5xl font-display font-bold text-white">
-        <ArticleBadge article={word.article} className="text-2xl sm:text-3xl" />
-        <span className="min-w-0 [overflow-wrap:anywhere]">{word.term}</span>
-        <SpeakButton text={word.term} />
-      </div>
-
-      {!revealed ? (
-        <div className="flex flex-col items-center gap-3 mt-4">
-          <button
-            onClick={() => setRevealed(true)}
-            disabled={disabled}
-            className="rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white px-8 py-3 text-sm font-medium transition-all hover:scale-105"
-          >
-            {t.study.showAnswer}
-          </button>
+    <div className="flip mx-auto w-full max-w-xl">
+      <div className="flip-inner" data-flipped={revealed}>
+        <div className="flip-face" aria-hidden={revealed}>
+          <IndexCard type="flashcard">
+            <div className="flex items-start justify-between gap-3">
+              {term}
+              <SpeakButton text={word.term} className="mt-2" />
+            </div>
+            <button
+              onClick={() => setRevealed(true)}
+              disabled={disabled || revealed}
+              tabIndex={revealed ? -1 : 0}
+              className="btn mt-10"
+            >
+              {t.study.showAnswer}
+            </button>
+          </IndexCard>
         </div>
-      ) : (
-        <div className="flex flex-col gap-6 mt-2">
-          <div className="flex flex-col items-center gap-2">
-            <p className="text-2xl font-medium text-white">{word.meaning_tr ?? "—"}</p>
+
+        <div className="flip-face flip-back" aria-hidden={!revealed}>
+          <IndexCard type="flashcard" className="h-full">
+            <p lang="de" className="font-display text-2xl font-semibold text-muted-text">
+              {word.article ? `${word.article} ` : ""}
+              {word.term}
+            </p>
+            <p className="mt-3 text-3xl font-semibold">{word.meaning_tr ?? ""}</p>
             {word.example_de && (
-              <p className="text-sm text-neutral-400 italic">&ldquo;{word.example_de}&rdquo;</p>
+              <p lang="de" className="mt-4 italic text-muted-text">
+                {word.example_de}
+              </p>
             )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              disabled={disabled}
-              onClick={() => onAnswer({ correct: false })}
-              className="rounded-xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 py-3 font-medium transition-all"
-            >
-              {t.study.didntKnow}
-            </button>
-            <button
-              disabled={disabled}
-              onClick={() => onAnswer({ correct: true })}
-              className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 py-3 font-medium transition-all"
-            >
-              {t.study.knew}
-            </button>
-          </div>
+            <div className="mt-8 grid grid-cols-2 gap-3">
+              <button
+                disabled={disabled || !revealed}
+                tabIndex={revealed ? 0 : -1}
+                onClick={() => onAnswer({ correct: false })}
+                className="rounded-[3px] border border-red/60 py-3 text-sm font-semibold text-red transition-colors hover:bg-red/10"
+              >
+                {t.study.didntKnow}
+              </button>
+              <button
+                disabled={disabled || !revealed}
+                tabIndex={revealed ? 0 : -1}
+                onClick={() => onAnswer({ correct: true })}
+                className="btn"
+              >
+                {t.study.knew}
+              </button>
+            </div>
+          </IndexCard>
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
 function TypingLikeQuestion({
+  type,
+  showArticle = true,
   prompt,
   hint,
   word,
@@ -150,6 +184,9 @@ function TypingLikeQuestion({
   disabled,
   onAnswer,
 }: {
+  type: QuestionType;
+  /** The article is a hint for "what is X in German?", but not inside a gap sentence. */
+  showArticle?: boolean;
   prompt: string;
   hint?: string;
   word: Word;
@@ -167,32 +204,49 @@ function TypingLikeQuestion({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="polkadot-card flex flex-col gap-6 p-8 sm:p-10 rounded-2xl w-full max-w-xl mx-auto">
-      <div className="flex flex-col items-center gap-2 text-center">
-        <div className="flex items-center gap-2 text-xl font-medium text-white">
-          {word.article && <ArticleBadge article={word.article} />}
-          <p>{prompt}</p>
+    <IndexCard type={type}>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+        <div>
+          <p className="flex flex-wrap items-baseline gap-x-2 text-2xl font-semibold leading-snug sm:text-3xl">
+            {showArticle && word.article && <ArticleBadge article={word.article} />}
+            <span>{prompt}</span>
+          </p>
+          {hint && <p className="mt-2 text-muted-text">{hint}</p>}
         </div>
-        {hint && <p className="text-sm text-neutral-400">{hint}</p>}
-      </div>
+        <AnswerLine value={value} onChange={setValue} disabled={disabled} placeholder={t.study.answerPlaceholder} />
+        <button type="submit" disabled={disabled || !value.trim()} className="btn self-start">
+          {t.study.submit}
+        </button>
+      </form>
+    </IndexCard>
+  );
+}
 
-      <input
-        autoFocus
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        disabled={disabled}
-        placeholder={t.study.answerPlaceholder}
-        className="w-full rounded-xl border border-white/10 bg-[#121318] p-4 text-center text-lg text-white placeholder:text-neutral-500 focus:border-white/30 focus:outline-none transition-all"
-      />
-
-      <button
-        type="submit"
-        disabled={disabled || !value.trim()}
-        className="rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white py-3 text-sm font-medium transition-all disabled:opacity-40"
-      >
-        {t.study.submit}
-      </button>
-    </form>
+/** A ruled line on the card that the learner writes on, in handwriting. */
+function AnswerLine({
+  value,
+  onChange,
+  disabled,
+  placeholder,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  disabled: boolean;
+  placeholder: string;
+}) {
+  return (
+    <input
+      autoFocus
+      lang="de"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      disabled={disabled}
+      placeholder={placeholder}
+      aria-label={placeholder}
+      autoComplete="off"
+      spellCheck={false}
+      className="hand w-full border-0 border-b border-rule bg-transparent pb-1 text-3xl text-pen outline-none placeholder:text-paper-ink/30 focus-visible:border-red focus-visible:outline-none disabled:opacity-60"
+    />
   );
 }
 
@@ -201,22 +255,12 @@ function ClozeQuestion({ item, disabled, onAnswer }: StudyCardProps) {
   const { word } = item;
   const cloze = word.example_de ? makeCloze(word.example_de, word.term) : { prompt: "", found: false };
 
-  if (cloze.found) {
-    return (
-      <TypingLikeQuestion
-        prompt={cloze.prompt}
-        hint={word.meaning_tr ?? undefined}
-        word={word}
-        correctAnswer={word.term}
-        disabled={disabled}
-        onAnswer={onAnswer}
-      />
-    );
-  }
-
   return (
     <TypingLikeQuestion
-      prompt={fmt(t.study.whatIsGerman, { meaning: word.meaning_tr ?? "" })}
+      type={item.question_type}
+      showArticle={!cloze.found}
+      prompt={cloze.found ? cloze.prompt : fmt(t.study.whatIsGerman, { meaning: word.meaning_tr ?? "" })}
+      hint={cloze.found ? word.meaning_tr ?? undefined : undefined}
       word={word}
       correctAnswer={word.term}
       disabled={disabled}
@@ -230,6 +274,7 @@ function TypingQuestion({ item, disabled, onAnswer }: StudyCardProps) {
   const { word } = item;
   return (
     <TypingLikeQuestion
+      type={item.question_type}
       prompt={fmt(t.study.whatIsGerman, { meaning: word.meaning_tr ?? "" })}
       word={word}
       correctAnswer={word.term}
@@ -256,31 +301,18 @@ function TranslateQuestion({ item, disabled, onAnswer }: StudyCardProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="polkadot-card flex flex-col gap-6 p-8 sm:p-10 rounded-2xl w-full max-w-xl mx-auto">
-      <div className="flex flex-col items-center gap-2 text-center">
-        <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
-          {t.study.translateTo}
-        </span>
-        <p className="text-xl font-medium text-white">{word.example_tr ?? word.meaning_tr}</p>
-      </div>
-
-      <input
-        autoFocus
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        disabled={disabled}
-        placeholder={t.study.sentencePlaceholder}
-        className="w-full rounded-xl border border-white/10 bg-[#121318] p-4 text-center text-lg text-white placeholder:text-neutral-500 focus:border-white/30 focus:outline-none transition-all"
-      />
-
-      <button
-        type="submit"
-        disabled={disabled || !value.trim()}
-        className="rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white py-3 text-sm font-medium transition-all disabled:opacity-40"
-      >
-        {t.study.submit}
-      </button>
-    </form>
+    <IndexCard type={item.question_type}>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+        <div>
+          <p className="label">{t.study.translateTo}</p>
+          <p className="mt-2 text-2xl font-semibold leading-snug sm:text-3xl">{word.example_tr ?? word.meaning_tr}</p>
+        </div>
+        <AnswerLine value={value} onChange={setValue} disabled={disabled} placeholder={t.study.sentencePlaceholder} />
+        <button type="submit" disabled={disabled || !value.trim()} className="btn self-start">
+          {t.study.submit}
+        </button>
+      </form>
+    </IndexCard>
   );
 }
 
@@ -297,5 +329,7 @@ export function StudyCard(props: StudyCardProps) {
       return <TypingQuestion {...props} />;
     case "translate":
       return <TranslateQuestion {...props} />;
+    default:
+      return null;
   }
 }

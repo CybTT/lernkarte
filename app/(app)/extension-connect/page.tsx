@@ -59,28 +59,22 @@ export default function ExtensionConnectPage() {
   }, []);
 
   return (
-    <main className="flex flex-1 items-center justify-center p-6 min-h-[70vh]">
-      <div className="polkadot-card flex flex-col items-center gap-6 p-8 rounded-2xl max-w-md w-full text-center">
-        <h1 className="font-display text-3xl font-bold text-white">{t.extension.title}</h1>
-        
-        {status === "connecting" && (
-          <p className="text-sm text-neutral-400 animate-pulse">
-            {t.extension.connecting}
-          </p>
-        )}
-        {status === "connected" && (
-          <div className="flex flex-col gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-4 text-emerald-300 text-sm">
-            <span className="font-bold">{t.extension.connected}</span>
-            <span>{t.extension.connectedBody}</span>
-          </div>
-        )}
-        {status === "not-found" && (
-          <div className="flex flex-col gap-2 rounded-xl bg-rose-500/10 border border-rose-500/30 p-4 text-rose-300 text-sm">
-            <span className="font-bold">{t.extension.notFound}</span>
-            <span>{t.extension.notFoundBody}</span>
-          </div>
-        )}
-      </div>
+    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-14 sm:px-6">
+      <h1 className="text-4xl font-bold sm:text-5xl">{t.extension.title}</h1>
+
+      {status === "connecting" && <p className="label animate-pulse">{t.extension.connecting}</p>}
+      {status === "connected" && (
+        <div className="border-l-2 border-good pl-4">
+          <p className="hand text-3xl text-good">{t.extension.connected}</p>
+          <p className="mt-1 text-muted-text">{t.extension.connectedBody}</p>
+        </div>
+      )}
+      {status === "not-found" && (
+        <div className="border-l-2 border-red pl-4">
+          <p className="font-semibold text-red">{t.extension.notFound}</p>
+          <p className="mt-1 max-w-[56ch] text-muted-text">{t.extension.notFoundBody}</p>
+        </div>
+      )}
     </main>
   );
 }

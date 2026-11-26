@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/components/I18nProvider";
 import { fmt } from "@/lib/i18n";
@@ -84,22 +83,21 @@ export function AddWordForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-3 w-full">
-      <input
-        type="text"
-        value={term}
-        onChange={(e) => setTerm(e.target.value)}
-        placeholder={t.addWord.placeholder}
-        disabled={busy}
-        className="flex-1 rounded-full border border-white/10 bg-[#121318] px-5 py-3 text-sm text-white placeholder:text-neutral-500 focus:border-white/30 focus:outline-none transition-all shadow-inner"
-      />
-      <button
-        type="submit"
-        disabled={busy || !term.trim()}
-        className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white px-6 py-3 text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105"
-      >
-        <Plus className="h-4 w-4" />
-        <span>{t.addWord.add}</span>
+    <form onSubmit={handleSubmit} className="flex w-full items-end gap-4">
+      <label className="flex-1">
+        <span className="sr-only">{t.addWord.placeholder}</span>
+        <input
+          type="text"
+          value={term}
+          onChange={(e) => setTerm(e.target.value)}
+          placeholder={t.addWord.placeholder}
+          disabled={busy}
+          lang="de"
+          className="line-input text-lg placeholder:text-muted-text/70"
+        />
+      </label>
+      <button type="submit" disabled={busy || !term.trim()} className="btn">
+        {t.addWord.add}
       </button>
     </form>
   );

@@ -1,17 +1,20 @@
 import { lastDayKeys } from "@/lib/dates";
 import { fmt } from "@/lib/i18n";
 
-const DAYS = 90;
+const DAYS = 91; // 13 full weeks
 
-function bucket(count: number): string {
-  if (count === 0) return "bg-white/5";
-  if (count < 5) return "bg-amber-500/30";
-  if (count < 10) return "bg-amber-500/60";
-  if (count < 20) return "bg-amber-500/85";
-  return "bg-amber-400 shadow-[0_0_6px_rgba(255,204,0,0.8)]";
+function shade(count: number): string {
+  if (count === 0) return "bg-text/[0.07]";
+  if (count < 5) return "bg-red/35";
+  if (count < 10) return "bg-red/60";
+  if (count < 20) return "bg-red/85";
+  return "bg-red";
 }
 
-/** `counts` is keyed by Turkish calendar day (see lib/dates). */
+/**
+ * A calendar of the last 13 weeks: one column per week, Monday at the top.
+ * `counts` is keyed by Turkish calendar day (see lib/dates).
+ */
 export function StreakHeatmap({
   counts,
   label,
@@ -22,17 +25,28 @@ export function StreakHeatmap({
   /** e.g. "{date}: {n} reviews" */
   cellLabel: string;
 }) {
-  const cells = lastDayKeys(DAYS).map((key) => ({ key, count: counts[key] ?? 0 }));
+  const days = lastDayKeys(DAYS);
+  // Pad the first column so each row is one weekday (Monday first).
+  const [y, m, d] = days[0].split("-").map(Number);
+  const offset = (new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7;
 
   return (
-    <div className="flex flex-wrap gap-1.5 justify-center sm:justify-start" aria-label={label}>
-      {cells.map((cell) => (
-        <div
-          key={cell.key}
-          title={fmt(cellLabel, { date: cell.key, n: cell.count })}
-          className={`h-3 w-3 rounded-sm transition-all hover:scale-125 ${bucket(cell.count)}`}
-        />
-      ))}
+    <div className="overflow-x-auto">
+      <div role="img" aria-label={label} className="grid w-max grid-flow-col grid-rows-7 gap-1">
+        {Array.from({ length: offset }, (_, i) => (
+          <span key={`pad-${i}`} className="h-3.5 w-3.5" />
+        ))}
+        {days.map((day) => {
+          const count = counts[day] ?? 0;
+          return (
+            <span
+              key={day}
+              title={fmt(cellLabel, { date: day, n: count })}
+              className={`h-3.5 w-3.5 rounded-[2px] ${shade(count)}`}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }

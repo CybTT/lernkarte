@@ -13,44 +13,46 @@ import { fmt } from "@/lib/i18n";
 
 const LEARNED_THRESHOLD = 85;
 
+/** A small handwritten-looking margin tag; red marks a problem. */
+function Tag({ children, tone = "muted" }: { children: React.ReactNode; tone?: "muted" | "red" }) {
+  return (
+    <span
+      className={cn(
+        "ml-2 rounded-[3px] border px-1.5 py-px font-mono text-[10px] align-middle",
+        tone === "red" ? "border-red/50 text-red" : "border-border text-muted-text"
+      )}
+    >
+      {children}
+    </span>
+  );
+}
+
 function WordRow({ word }: { word: Word }) {
   const { t } = useI18n();
   return (
-    <tr className="group border-b border-white/5 transition-colors hover:bg-white/[0.03]">
-      <td className="py-3 px-4 w-0 whitespace-nowrap font-semibold">
+    <tr className="border-b border-border align-baseline transition-colors hover:bg-text/[0.03]">
+      <td className="w-0 whitespace-nowrap py-3 pr-3 text-sm">
         <ArticleBadge article={word.article} />
       </td>
-      <td className="py-3 px-4 font-medium text-white">
-        <Link href={`/word/${word.id}`} className="hover:underline hover:text-amber-300 transition-colors">
+      <td className="py-3 pr-4">
+        <Link href={`/word/${word.id}`} lang="de" className="link font-display text-lg font-semibold">
           {word.term}
         </Link>
-        {word.needs_review && (
-          <span className="ml-2 inline-flex items-center rounded-full bg-rose-500/20 px-2 py-0.5 text-[10px] font-medium text-rose-400 border border-rose-500/30">
-            {t.dictionary.badgeUnrecognized}
-          </span>
-        )}
-        {!word.enriched && !word.needs_review && (
-          <span className="ml-2 inline-flex items-center rounded-full bg-neutral-800 px-2 py-0.5 text-[10px] font-medium text-neutral-400 border border-white/10">
-            {t.dictionary.badgeUnprocessed}
-          </span>
-        )}
-        {word.is_leech && (
-          <span className="ml-2 inline-flex items-center rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-medium text-amber-300 border border-amber-500/30">
-            {t.dictionary.badgeWeak}
-          </span>
-        )}
+        {word.needs_review && <Tag tone="red">{t.dictionary.badgeUnrecognized}</Tag>}
+        {!word.enriched && !word.needs_review && <Tag>{t.dictionary.badgeUnprocessed}</Tag>}
+        {word.is_leech && <Tag tone="red">{t.dictionary.badgeWeak}</Tag>}
       </td>
-      <td className="py-3 px-4 hidden font-mono text-xs text-neutral-400 sm:table-cell">
-        {word.ipa ? `[${word.ipa}]` : "—"}
+      <td className="hidden py-3 pr-4 font-mono text-xs text-muted-text sm:table-cell">
+        {word.ipa ? `[${word.ipa}]` : ""}
       </td>
-      <td className="py-3 px-4 text-neutral-300 text-sm">
+      <td className="py-3 pr-4 text-sm text-text/85">
         <MeaningWithVariants meaning={word.meaning_tr} others={word.meanings_tr} />
       </td>
-      <td className="py-3 px-4 w-32">
+      <td className="w-24 py-3 sm:w-32">
         <MasteryBar mastery={word.mastery} />
       </td>
-      <td className="py-3 px-4 hidden max-w-xs text-xs text-neutral-400 lg:table-cell truncate">
-        {word.usage_note ?? "—"}
+      <td className="hidden max-w-xs truncate py-3 pl-4 text-xs text-muted-text lg:table-cell">
+        {word.usage_note ?? ""}
       </td>
     </tr>
   );
@@ -59,22 +61,22 @@ function WordRow({ word }: { word: Word }) {
 function WordTable({ words }: { words: Word[] }) {
   const { t } = useI18n();
   if (words.length === 0) {
-    return <p className="text-sm text-neutral-500 py-12 text-center">{t.dictionary.empty}</p>;
+    return <p className="border-t border-border py-12 text-sm text-muted-text">{t.dictionary.empty}</p>;
   }
   return (
-    <div className="w-full overflow-x-auto rounded-2xl border border-white/10 bg-[#101116]/80 backdrop-blur-md">
-      <table className="w-full text-left text-sm text-neutral-200">
-        <thead className="border-b border-white/10 bg-white/[0.02] text-xs font-semibold text-neutral-400 uppercase tracking-wider">
-          <tr>
-            <th className="py-3 px-4 w-0">{t.dictionary.colArticle}</th>
-            <th className="py-3 px-4">{t.dictionary.colWord}</th>
-            <th className="py-3 px-4 hidden sm:table-cell">{t.dictionary.colIpa}</th>
-            <th className="py-3 px-4">{t.dictionary.colMeaning}</th>
-            <th className="py-3 px-4">{t.dictionary.colMastery}</th>
-            <th className="py-3 px-4 hidden lg:table-cell">{t.dictionary.colUsage}</th>
+    <div className="w-full overflow-x-auto">
+      <table className="w-full border-collapse text-left">
+        <thead>
+          <tr className="border-b border-text/25 font-mono text-[11px] text-muted-text">
+            <th scope="col" className="w-0 py-2 pr-3 font-normal">{t.dictionary.colArticle}</th>
+            <th scope="col" className="py-2 pr-4 font-normal">{t.dictionary.colWord}</th>
+            <th scope="col" className="hidden py-2 pr-4 font-normal sm:table-cell">{t.dictionary.colIpa}</th>
+            <th scope="col" className="py-2 pr-4 font-normal">{t.dictionary.colMeaning}</th>
+            <th scope="col" className="py-2 font-normal">{t.dictionary.colMastery}</th>
+            <th scope="col" className="hidden py-2 pl-4 font-normal lg:table-cell">{t.dictionary.colUsage}</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-white/5">
+        <tbody>
           {words.map((w) => (
             <WordRow key={w.id} word={w} />
           ))}
@@ -97,18 +99,21 @@ function ThemeGroups({ words }: { words: Word[] }) {
   }, [words, t]);
 
   if (groups.length === 0) {
-    return <p className="text-sm text-neutral-500 py-12 text-center">{t.dictionary.emptyThemes}</p>;
+    return <p className="border-t border-border py-12 text-sm text-muted-text">{t.dictionary.emptyThemes}</p>;
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col border-t border-border">
       {groups.map(([theme, items]) => (
-        <details key={theme} className="rounded-xl border border-white/10 bg-[#101116] overflow-hidden" open={groups.length <= 3}>
-          <summary className="cursor-pointer select-none px-5 py-4 font-medium flex items-center justify-between hover:bg-white/[0.02] transition-colors">
-            <span className="text-white font-semibold">{theme}</span>
-            <span className="text-xs text-neutral-400 font-mono">{fmt(t.dictionary.themeCount, { n: items.length })}</span>
+        <details key={theme} className="group border-b border-border" open={groups.length <= 3}>
+          <summary className="flex cursor-pointer select-none items-baseline justify-between gap-4 rounded-[3px] py-4">
+            <span lang="de" className="font-display text-xl font-semibold">
+              <span aria-hidden className="mr-2 inline-block font-mono text-sm text-red transition-transform group-open:rotate-90">›</span>
+              {theme}
+            </span>
+            <span className="label">{fmt(t.dictionary.themeCount, { n: items.length })}</span>
           </summary>
-          <div className="p-3 pt-0">
+          <div className="pb-4">
             <WordTable words={items} />
           </div>
         </details>
@@ -134,24 +139,25 @@ export function DictionaryView({ words, initialTab = "all" }: { words: Word[]; i
   ];
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-10">
       <AddWordForm />
 
-      {/* Dark Pill Tabs Navigation */}
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-wrap items-center gap-1.5 rounded-full border border-white/10 bg-[#121318] p-1.5 w-fit">
-          {TABS.map((t) => (
+      <div className="flex flex-col gap-4">
+        <div role="tablist" className="flex flex-wrap gap-x-5 gap-y-1 border-b border-border">
+          {TABS.map((tabItem) => (
             <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
+              key={tabItem.id}
+              role="tab"
+              aria-selected={tab === tabItem.id}
+              onClick={() => setTab(tabItem.id)}
               className={cn(
-                "rounded-full px-4 py-1.5 text-xs font-medium transition-all duration-200",
-                tab === t.id
-                  ? "bg-white/15 text-white border border-white/20 shadow-sm"
-                  : "text-neutral-400 hover:text-neutral-200 hover:bg-white/5"
+                "-mb-px rounded-[3px] border-b-2 py-2 text-sm transition-colors",
+                tab === tabItem.id
+                  ? "border-red text-text"
+                  : "border-transparent text-muted-text hover:text-text"
               )}
             >
-              {t.label}
+              {tabItem.label}
             </button>
           ))}
         </div>

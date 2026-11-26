@@ -11,7 +11,6 @@ import { submitAnswer } from "@/app/(app)/study/actions";
 import { StudyCard, type StudyCardAnswer } from "@/components/StudyCard";
 import { WordFullCard } from "@/components/WordFullCard";
 import { MasteryBar } from "@/components/MasteryBar";
-import { CheckCircle2, ArrowRight } from "lucide-react";
 
 interface FeedbackState {
   correct: boolean;
@@ -138,136 +137,110 @@ export function StudySession({ items }: { items: StudyItem[] }) {
 
   if (done) {
     return (
-      <div className="polkadot-card flex flex-col items-center justify-center gap-6 p-10 rounded-2xl text-center max-w-lg mx-auto my-auto">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-          <CheckCircle2 className="h-8 w-8" />
-        </div>
-        <div className="flex flex-col gap-2">
-          <h1 className="font-display text-3xl font-bold text-white">{t.study.doneTitle}</h1>
-          <p className="text-neutral-400 text-sm">
-            {fmtParts(t.study.doneScore, {
-              total: answeredCount,
-              correct: (
-                <span key="correct" className="text-emerald-400 font-bold font-mono">
-                  {correctCount}
-                </span>
-              ),
-            })}
-          </p>
-        </div>
-        <div className="flex gap-3 mt-2">
-          <Link
-            href="/dictionary"
-            className="rounded-full border border-white/10 bg-white/5 hover:bg-white/10 text-neutral-300 px-6 py-2.5 text-sm font-medium transition-all"
-          >
+      <section className="sheet-in flex flex-col gap-6 py-6">
+        <Stamp tone="good">{t.study.doneTitle}</Stamp>
+        <p className="text-2xl leading-snug sm:text-3xl">
+          {fmtParts(t.study.doneScore, {
+            total: answeredCount,
+            correct: (
+              <span key="correct" className="font-mono text-red">
+                {correctCount}
+              </span>
+            ),
+          })}
+        </p>
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+          <Link href="/dashboard" onClick={() => router.refresh()} className="btn">
+            {t.study.backToDashboard}
+          </Link>
+          <Link href="/sentence" className="link text-sm">
+            {t.dashboard.writeSentence}
+          </Link>
+          <Link href="/dictionary" className="link text-sm">
             {t.nav.dictionary}
           </Link>
-          <Link
-            href="/dashboard"
-            onClick={() => router.refresh()}
-            className="rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white px-6 py-2.5 text-sm font-medium transition-all flex items-center gap-2"
-          >
-            <span>{t.study.backToDashboard}</span>
-            <ArrowRight className="h-4 w-4" />
-          </Link>
         </div>
-      </div>
+      </section>
     );
   }
 
   const progressVal = ((index + (feedback ? 1 : 0)) / items.length) * 100;
 
   return (
-    <div className="flex flex-1 flex-col gap-8 w-full">
-      
-      {/* Sleek Progress Header */}
-      <div className="flex items-center gap-4 w-full">
-        <div className="h-2 flex-1 rounded-full bg-white/5 border border-white/10 overflow-hidden">
-          <div
-            className="h-full bg-gradient-to-r from-amber-500 to-amber-300 transition-all duration-500"
-            style={{ width: `${progressVal}%` }}
-          />
+    <div className="flex w-full flex-1 flex-col gap-8">
+      {/* Progress: a thin red line and the card count */}
+      <div className="flex items-center gap-4">
+        <div className="h-[2px] flex-1 bg-text/10">
+          <div className="h-full bg-red transition-[width] duration-500" style={{ width: `${progressVal}%` }} />
         </div>
-        <span className="whitespace-nowrap font-mono text-xs text-neutral-400 font-semibold">
+        <span className="font-mono text-xs tabular-nums text-muted-text">
           {index + 1} / {items.length}
         </span>
       </div>
 
-      {/* Main Question Card or Feedback view */}
-      <div className="flex flex-1 items-center justify-center">
-        {!feedback ? (
-          <div className="flex w-full flex-col gap-4">
-            <StudyCard
-              key={item.word.id + index}
-              item={item}
-              disabled={submitting || problem !== null}
-              onAnswer={handleAnswer}
-            />
-            {submitting && (
-              <p className="text-center text-sm text-neutral-400 animate-pulse">{t.study.checking}</p>
-            )}
-            {problem && (
-              <div
-                role="alert"
-                className="mx-auto flex w-full max-w-xl flex-col items-center gap-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5 text-center"
-              >
-                <p className="text-sm text-amber-200">{problem.message}</p>
-                <div className="flex flex-wrap justify-center gap-3">
-                  {problem.retry && (
-                    <button
-                      onClick={problem.retry}
-                      disabled={submitting}
-                      className="rounded-full border border-white/20 bg-white/10 px-6 py-2.5 text-sm font-medium text-white transition-all hover:bg-white/20 disabled:opacity-40"
-                    >
-                      {t.common.retry}
-                    </button>
-                  )}
-                  <button
-                    onClick={handleSkip}
-                    disabled={submitting}
-                    className="rounded-full border border-white/10 bg-white/5 px-6 py-2.5 text-sm font-medium text-neutral-300 transition-all hover:bg-white/10 disabled:opacity-40"
-                  >
-                    {t.study.skip}
+      {!feedback ? (
+        <div className="flex flex-col gap-4">
+          <StudyCard
+            key={item.word.id + index}
+            item={item}
+            disabled={submitting || problem !== null}
+            onAnswer={handleAnswer}
+          />
+          {submitting && <p className="label mx-auto animate-pulse">{t.study.checking}</p>}
+          {problem && (
+            <div role="alert" className="mx-auto flex w-full max-w-xl flex-col gap-4 border-l-2 border-red pl-4">
+              <p className="text-sm text-text">{problem.message}</p>
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+                {problem.retry && (
+                  <button onClick={problem.retry} disabled={submitting} className="btn">
+                    {t.common.retry}
                   </button>
-                </div>
+                )}
+                <button onClick={handleSkip} disabled={submitting} className="link text-sm text-muted-text">
+                  {t.study.skip}
+                </button>
               </div>
-            )}
-          </div>
-        ) : (
-          <div className="polkadot-card flex w-full max-w-xl flex-col gap-6 p-8 rounded-2xl mx-auto">
-            <p
-              className={
-                feedback.correct
-                  ? "text-center text-xl font-bold text-emerald-400"
-                  : "text-center text-xl font-bold text-rose-400"
-              }
-            >
-              {feedback.correct ? t.study.correct : t.study.wrong}
-            </p>
-            
-            {feedback.gradeFeedback && (
-              <p className="text-center text-sm text-neutral-400">{feedback.gradeFeedback}</p>
-            )}
-
-            <WordFullCard word={feedback.word} />
-
-            <div className="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/10">
-              <span className="font-mono text-xs text-neutral-400">
-                {Math.round(feedback.masteryBefore)}% → {Math.round(feedback.masteryAfter)}%
-              </span>
-              <MasteryBar mastery={feedback.masteryAfter} className="flex-1" />
             </div>
+          )}
+        </div>
+      ) : (
+        <div className="mx-auto flex w-full max-w-xl flex-col gap-5">
+          <WordFullCard
+            word={feedback.word}
+            stamp={
+              <Stamp tone={feedback.correct ? "good" : "red"}>
+                {feedback.correct ? t.study.correct : t.study.wrong}
+              </Stamp>
+            }
+          />
 
-            <button
-              onClick={handleNext}
-              autoFocus
-              className="rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white py-3 font-medium text-sm transition-all hover:scale-[1.02]"
-            >
-              {t.study.continue}
-            </button>
+          {feedback.gradeFeedback && <p className="hand text-2xl text-text/90">{feedback.gradeFeedback}</p>}
+
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-xs tabular-nums text-muted-text">
+              {Math.round(feedback.masteryBefore)} → {Math.round(feedback.masteryAfter)}
+            </span>
+            <MasteryBar mastery={feedback.masteryAfter} className="flex-1" />
           </div>
-        )}
-      </div>
+
+          <button onClick={handleNext} autoFocus className="btn self-start">
+            {t.study.continue}
+          </button>
+        </div>
+      )}
     </div>
+  );
+}
+
+/** A teacher's stamp in handwriting, landing at a slight angle. */
+function Stamp({ tone, children }: { tone: "good" | "red"; children: React.ReactNode }) {
+  return (
+    <span
+      className={`stamp hand inline-block -rotate-6 rounded-[3px] border-2 px-3 py-0.5 text-3xl font-bold leading-tight ${
+        tone === "good" ? "border-good text-good" : "border-red text-red"
+      }`}
+    >
+      {children}
+    </span>
   );
 }

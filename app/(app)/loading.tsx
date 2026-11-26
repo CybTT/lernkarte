@@ -7,17 +7,14 @@ import { getI18n } from "@/lib/i18n/server";
 export default async function Loading() {
   const { t } = await getI18n();
   return (
-    <main
-      className="mx-auto flex w-full max-w-4xl flex-1 flex-col items-center gap-8 px-6 py-12"
-      aria-busy="true"
-    >
+    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6 lg:py-14" aria-busy="true">
       <span className="sr-only">{t.common.loading}</span>
-      <div className="h-10 w-48 animate-pulse rounded-full bg-white/10" />
-      <div className="h-40 w-full max-w-2xl animate-pulse rounded-2xl bg-white/5" />
-      <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="h-24 animate-pulse rounded-2xl bg-white/5" />
-        ))}
+      <div className="flex flex-col gap-4 motion-safe:animate-pulse">
+        <div className="h-3 w-40 bg-text/10" />
+        <div className="h-12 w-full max-w-xl bg-text/10" />
+        <div className="h-12 w-3/4 max-w-md bg-text/10" />
+        <div className="mt-8 h-px w-full bg-border" />
+        <div className="h-24 w-full max-w-2xl bg-text/[0.06]" />
       </div>
     </main>
   );

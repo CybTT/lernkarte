@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
 import { useI18n } from "@/components/I18nProvider";
 
 export function WordDetailActions({ wordId }: { wordId: string }) {
@@ -63,13 +62,18 @@ export function WordDetailActions({ wordId }: { wordId: string }) {
   }
 
   return (
-    <div className="flex gap-2">
-      <Button variant="secondary" onClick={handleReenrich} disabled={busy}>
+    <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+      <button type="button" onClick={handleReenrich} disabled={busy} className="btn">
         {t.word.reenrich}
-      </Button>
-      <Button variant="destructive" onClick={handleDelete} disabled={busy}>
+      </button>
+      <button
+        type="button"
+        onClick={handleDelete}
+        disabled={busy}
+        className="link text-sm text-red disabled:opacity-40"
+      >
         {t.word.delete}
-      </Button>
+      </button>
     </div>
   );
 }

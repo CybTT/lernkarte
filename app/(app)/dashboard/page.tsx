@@ -4,14 +4,14 @@ import { buildStudySession, LEARNED_MASTERY_THRESHOLD } from "@/lib/engine";
 import type { Word } from "@/lib/types";
 import { StreakHeatmap } from "@/components/StreakHeatmap";
 import { countByDay } from "@/lib/dates";
+import { APP_TIME_ZONE } from "@/lib/dates";
 import { getI18n } from "@/lib/i18n/server";
-import { fmt } from "@/lib/i18n";
+import { DATE_LOCALE, fmt } from "@/lib/i18n";
 import { GermanyFlagBlank } from "@/components/GermanyFlagBlank";
-import { ArrowRight, AlertTriangle, CheckCircle2 } from "lucide-react";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
-  const [userId, { t }] = await Promise.all([requireUserId(supabase), getI18n()]);
+  const [userId, { t, locale }] = await Promise.all([requireUserId(supabase), getI18n()]);
 
   const now = new Date();
   const ninetyDaysAgo = new Date(now);
@@ -45,39 +45,58 @@ export default async function DashboardPage() {
 
   const heatmapCounts = countByDay((reviews ?? []).map((r) => r.created_at as string));
 
+  const today = now.toLocaleDateString(DATE_LOCALE[locale], {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    timeZone: APP_TIME_ZONE,
+  });
+  const reviewTotal = Object.values(heatmapCounts).reduce((a, b) => a + b, 0);
+
   return (
-    <main className="relative mx-auto flex w-full max-w-4xl flex-1 flex-col items-center gap-12 px-6 py-12">
-      
-      {/* POLKADOT HERO SECTION */}
-      <section className="flex w-full flex-col items-center text-center">
-        <h1 className="font-display text-5xl sm:text-7xl font-bold tracking-tight text-white drop-shadow-sm">
-          LernKarte
-        </h1>
-        <p className="mt-3 text-lg sm:text-xl text-neutral-400 font-light max-w-md">
-          {t.dashboard.tagline}
-        </p>
-
-        {/* Call to Action Button (Polkadot dark pill style) */}
-        <div className="mt-8">
-          {session.length > 0 ? (
-            <Link
-              href="/study"
-              className="inline-flex items-center gap-3 rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white px-8 py-4 text-lg font-medium shadow-2xl backdrop-blur-md transition-all hover:scale-105"
-            >
-              <span>{fmt(t.dashboard.studyToday, { n: session.length })}</span>
-              <ArrowRight className="h-5 w-5" />
+    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6 lg:py-14">
+      <div className="grid gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-20">
+        {/* Today */}
+        <section className="flex flex-col">
+          <p className="label first-letter:uppercase">{today}</p>
+          <h1 className="mt-3 max-w-[16ch] text-4xl font-bold leading-[1.05] sm:text-6xl">
+            {session.length > 0
+              ? fmt(t.dashboard.headlineDue, { n: session.length })
+              : t.dashboard.headlineNone}
+          </h1>
+          <p className="mt-5 max-w-[52ch] text-muted-text">
+            {session.length > 0 ? t.dashboard.subDue : t.dashboard.subNone}
+          </p>
+          <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
+            {session.length > 0 ? (
+              <Link href="/study" className="btn">
+                {t.dashboard.startStudy}
+              </Link>
+            ) : (
+              <Link href="/dictionary" className="btn">
+                {t.dashboard.addWords}
+              </Link>
+            )}
+            <Link href="/sentence" className="link text-sm">
+              {t.dashboard.writeSentence}
             </Link>
-          ) : (
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-6 py-3 text-emerald-300 text-sm font-medium">
-              <CheckCircle2 className="h-4 w-4" />
-              <span>{t.dashboard.nothingDue}</span>
-            </div>
-          )}
-        </div>
-      </section>
+          </div>
 
-      {/* GERMANY FLAG PROGRESS BLANK */}
-      <section className="w-full">
+          <dl className="mt-12 border-t border-border">
+            <div className="flex items-baseline justify-between border-b border-border py-3">
+              <dt className="text-sm text-muted-text">{t.dashboard.due}</dt>
+              <dd className="font-mono text-xl tabular-nums">{dueWords.length}</dd>
+            </div>
+            {leeches.length > 0 && (
+              <div className="border-b border-border py-3">
+                <Link href="/dictionary?filter=leeches" className="link text-sm text-red">
+                  {fmt(t.dashboard.leeches, { n: leeches.length })}
+                </Link>
+              </div>
+            )}
+          </dl>
+        </section>
+
         <GermanyFlagBlank
           t={t.flag}
           realProgress={realProgress}
@@ -85,59 +104,15 @@ export default async function DashboardPage() {
           masteredWords={mastered}
           learningWords={stillLearning}
         />
+      </div>
+
+      <section className="mt-16 border-t border-border pt-6">
+        <div className="mb-4 flex items-baseline justify-between gap-4">
+          <h2 className="label">{t.dashboard.activity}</h2>
+          <span className="label">{fmt(t.dashboard.reviewCount, { n: reviewTotal })}</span>
+        </div>
+        <StreakHeatmap counts={heatmapCounts} label={t.heatmap.aria} cellLabel={t.heatmap.cell} />
       </section>
-
-      {/* STATS CARDS GRID */}
-      <section className="grid w-full grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="polkadot-card flex flex-col items-center justify-center p-6 rounded-2xl text-center transition-transform hover:-translate-y-1">
-          <span className="font-mono text-3xl font-bold text-white">{dueWords.length}</span>
-          <span className="mt-1 text-xs text-neutral-400 font-medium">{t.dashboard.due}</span>
-        </div>
-        
-        <div className="polkadot-card flex flex-col items-center justify-center p-6 rounded-2xl text-center transition-transform hover:-translate-y-1">
-          <span className="font-mono text-3xl font-bold text-sky-400">{stillLearning}</span>
-          <span className="mt-1 text-xs text-neutral-400 font-medium">{t.dashboard.learning}</span>
-        </div>
-        
-        <div className="polkadot-card flex flex-col items-center justify-center p-6 rounded-2xl text-center transition-transform hover:-translate-y-1">
-          <span className="font-mono text-3xl font-bold text-emerald-400">{mastered}</span>
-          <span className="mt-1 text-xs text-neutral-400 font-medium">{t.dashboard.mastered}</span>
-        </div>
-      </section>
-
-      {/* LEECHES ALERT */}
-      {leeches.length > 0 && (
-        <Link
-          href="/dictionary?filter=leeches"
-          className="w-full flex items-center justify-between rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-300 transition-all hover:bg-rose-500/20"
-        >
-          <div className="flex items-center gap-3">
-            <AlertTriangle className="h-5 w-5 text-rose-400" />
-            <span>{fmt(t.dashboard.leeches, { n: leeches.length })}</span>
-          </div>
-          <ArrowRight className="h-4 w-4" />
-        </Link>
-      )}
-
-      {/* HEATMAP SECTION */}
-      <section className="w-full polkadot-card p-6 rounded-2xl flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
-            {t.dashboard.activity}
-          </span>
-          <span className="text-xs text-neutral-500 font-mono">
-            {fmt(t.dashboard.reviewCount, {
-              n: Object.values(heatmapCounts).reduce((a, b) => a + b, 0),
-            })}
-          </span>
-        </div>
-        <StreakHeatmap
-          counts={heatmapCounts}
-          label={t.heatmap.aria}
-          cellLabel={t.heatmap.cell}
-        />
-      </section>
-
     </main>
   );
 }

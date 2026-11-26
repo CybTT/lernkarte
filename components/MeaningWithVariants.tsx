@@ -30,15 +30,15 @@ export function MeaningWithVariants({
       <Popover>
         <PopoverTrigger
           className={cn(
-            "rounded-full border border-border px-1.5 py-0.5 text-[10px] leading-none",
-            "text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            "rounded-[3px] font-mono text-[11px] text-muted-text underline decoration-dotted underline-offset-4",
+            "transition-colors hover:text-current"
           )}
           aria-label={fmt(t.word.meaningsMore, { n: extras.length })}
         >
           +{extras.length}
         </PopoverTrigger>
         <PopoverContent className="w-56">
-          <p className="text-xs text-muted-foreground">{t.word.meaningsAll}</p>
+          <p className="label">{t.word.meaningsAll}</p>
           <ul className="flex list-disc flex-col gap-1 pl-4">
             {[meaning, ...extras].map((m) => (
               <li key={m}>{m}</li>

@@ -19,14 +19,10 @@ export default async function DictionaryPage({
     .order("created_at", { ascending: false });
 
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-10">
-      <div className="flex flex-col gap-2 mb-8 text-center sm:text-left">
-        <h1 className="font-display text-4xl font-bold tracking-tight text-white">
-          {t.dictionary.title}
-        </h1>
-        <p className="text-sm text-neutral-400">
-          {t.dictionary.subtitle}
-        </p>
+    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6 lg:py-14">
+      <div className="mb-10 flex flex-col gap-3">
+        <h1 className="text-4xl font-bold sm:text-6xl">{t.dictionary.title}</h1>
+        <p className="max-w-[60ch] text-muted-text">{t.dictionary.subtitle}</p>
       </div>
 
       <DictionaryView words={(words as Word[]) ?? []} initialTab={filter === "leeches" ? "leeches" : "all"} />

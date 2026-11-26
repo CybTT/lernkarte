@@ -73,59 +73,60 @@ export function LoginForm({
     setStatus("confirm-email");
   }
 
+  const fieldClass =
+    "w-full border-0 border-b border-paper-ink/30 bg-transparent py-2 text-lg outline-none placeholder:text-paper-ink/30 focus-visible:border-red focus-visible:outline-none";
+
   if (status === "confirm-email") {
     return (
-      <p className="text-sm text-neutral-300 text-center">
-        {fmtParts(t.login.confirmEmail, {
-          email: (
-            <strong key="email" className="text-white">
-              {email}
-            </strong>
-          ),
-        })}
-      </p>
+      <div className="px-6 py-8">
+        <p className="hand text-2xl leading-snug text-pen">
+          {fmtParts(t.login.confirmEmail, {
+            email: (
+              <strong key="email" className="font-bold">
+                {email}
+              </strong>
+            ),
+          })}
+        </p>
+      </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-4 w-full">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="email" className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
-            {t.login.email}
-          </label>
+    <div className="flex flex-col">
+      <div className="sheet-head px-6 pb-2.5 pt-4">
+        <span className="label">{mode === "signin" ? t.login.signIn : t.login.signUp}</span>
+      </div>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6 px-6 pb-6 pt-6">
+        <label className="flex flex-col gap-1">
+          <span className="label">{t.login.email}</span>
           <input
             id="email"
             type="email"
             required
+            autoComplete="email"
             placeholder={t.login.emailPlaceholder}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-xl border border-white/10 bg-[#121318] p-3 text-sm text-white placeholder:text-neutral-500 focus:border-white/30 focus:outline-none transition-all"
+            className={fieldClass}
           />
-        </div>
+        </label>
 
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="password" className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
-            {t.login.password}
-          </label>
+        <label className="flex flex-col gap-1">
+          <span className="label">{t.login.password}</span>
           <input
             id="password"
             type="password"
             required
             minLength={6}
-            placeholder="••••••••"
+            autoComplete={mode === "signin" ? "current-password" : "new-password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-xl border border-white/10 bg-[#121318] p-3 text-sm text-white placeholder:text-neutral-500 focus:border-white/30 focus:outline-none transition-all"
+            className={fieldClass}
           />
-        </div>
+        </label>
 
-        <button
-          type="submit"
-          disabled={status === "busy"}
-          className="mt-2 w-full rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white py-3 text-sm font-medium transition-all disabled:opacity-40 hover:scale-[1.02]"
-        >
+        <button type="submit" disabled={status === "busy"} className="btn mt-2 w-full">
           {status === "busy"
             ? mode === "signin"
               ? t.login.signingIn
@@ -136,13 +137,15 @@ export function LoginForm({
         </button>
 
         {status === "error" && error && (
-          <p className="text-sm text-rose-400 text-center font-medium">{error}</p>
+          <p role="alert" className="border-l-2 border-red pl-3 text-sm text-red">
+            {error}
+          </p>
         )}
       </form>
 
       <button
         type="button"
-        className="text-xs text-neutral-400 hover:text-white transition-colors text-center mt-2"
+        className="link mx-6 mb-6 self-start text-sm text-muted-text"
         onClick={() => {
           setMode(mode === "signin" ? "signup" : "signin");
           setStatus("idle");

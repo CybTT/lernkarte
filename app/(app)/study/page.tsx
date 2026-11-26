@@ -6,7 +6,6 @@ import { applyMode, parseMode } from "@/lib/studyModes";
 import type { Word } from "@/lib/types";
 import { StudySession } from "@/components/StudySession";
 import { StudyModeTabs } from "@/components/StudyModeTabs";
-import { Button } from "@/components/ui/button";
 import { getI18n } from "@/lib/i18n/server";
 
 export default async function StudyPage({
@@ -40,23 +39,26 @@ export default async function StudyPage({
 
   if (items.length === 0) {
     return (
-      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-8 p-6">
+      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-10 px-4 py-10 sm:px-6">
         <StudyModeTabs active={mode} t={t.study} />
-        <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-          <h1 className="text-2xl font-semibold">{t.study.nothingDueTitle}</h1>
-          <p className="text-muted-foreground">
-            {t.study.nothingDueBody}
-          </p>
-          <Button render={<Link href="/dictionary" />} nativeButton={false}>
-            {t.study.goToDictionary}
-          </Button>
+        <div className="flex flex-col gap-4">
+          <h1 className="text-4xl font-bold sm:text-5xl">{t.study.nothingDueTitle}</h1>
+          <p className="max-w-[56ch] text-muted-text">{t.study.nothingDueBody}</p>
+          <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-3">
+            <Link href="/dictionary" className="btn">
+              {t.study.goToDictionary}
+            </Link>
+            <Link href="/sentence" className="link text-sm">
+              {t.dashboard.writeSentence}
+            </Link>
+          </div>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-8 p-6">
+    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-4 py-10 sm:px-6">
       <StudyModeTabs active={mode} t={t.study} />
       <StudySession items={items} />
     </main>

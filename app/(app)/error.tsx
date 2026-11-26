@@ -6,17 +6,11 @@ import { useI18n } from "@/components/I18nProvider";
 export default function AppError({ retry }: { error: Error & { digest?: string }; retry: () => void }) {
   const { t } = useI18n();
   return (
-    <main className="flex flex-1 items-center justify-center p-6">
-      <div
-        role="alert"
-        className="polkadot-card flex w-full max-w-md flex-col items-center gap-4 rounded-2xl p-8 text-center"
-      >
-        <h1 className="font-display text-2xl font-bold text-white">{t.error.title}</h1>
-        <p className="text-sm text-neutral-400">{t.error.body}</p>
-        <button
-          onClick={() => retry()}
-          className="rounded-full border border-white/20 bg-white/10 px-6 py-2.5 text-sm font-medium text-white transition-all hover:bg-white/20"
-        >
+    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 px-4 py-14 sm:px-6">
+      <div role="alert" className="flex flex-col gap-4 border-l-2 border-red pl-5">
+        <h1 className="text-3xl font-bold sm:text-4xl">{t.error.title}</h1>
+        <p className="max-w-[56ch] text-muted-text">{t.error.body}</p>
+        <button onClick={() => retry()} className="btn w-fit">
           {t.common.retry}
         </button>
       </div>

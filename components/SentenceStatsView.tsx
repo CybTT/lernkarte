@@ -31,54 +31,46 @@ export function SentenceStatsView({
   return (
     <>
       {stats.sentences === 0 ? (
-        <div className="polkadot-card flex flex-col items-center gap-4 rounded-2xl p-10 text-center">
-          <p className="text-sm text-neutral-300">{t.stats.empty}</p>
-          <Link
-            href="/sentence"
-            className="rounded-full border border-white/20 bg-white/10 px-6 py-2.5 text-sm font-medium text-white transition-all hover:bg-white/20"
-          >
+        <div className="flex flex-col gap-4 border-t border-border pt-6">
+          <p className="max-w-[56ch] text-muted-text">{t.stats.empty}</p>
+          <Link href="/sentence" className="btn w-fit">
             {t.stats.startPractice}
           </Link>
         </div>
       ) : (
         <>
-          {/* Headline numbers */}
-          <section className="grid grid-cols-3 gap-3">
+          {/* Headline numbers, separated by rules */}
+          <dl className="grid grid-cols-3 border-y border-border">
             {[
               { label: t.stats.sentences, value: String(stats.sentences) },
               { label: t.stats.correctRate, value: pct(stats.correctRate) },
               { label: t.stats.errorsPerSentence, value: perSentence(stats.errorsPerSentence) },
-            ].map((tile) => (
-              <div key={tile.label} className="polkadot-card flex flex-col items-center gap-1 rounded-2xl p-4 text-center">
-                <span className="font-mono text-2xl font-bold text-white sm:text-3xl">{tile.value}</span>
-                <span className="text-xs text-neutral-400">{tile.label}</span>
+            ].map((tile, i) => (
+              <div key={tile.label} className={i > 0 ? "border-l border-border py-4 pl-4" : "py-4 pr-4"}>
+                <dt className="label">{tile.label}</dt>
+                <dd className="font-mono text-3xl tabular-nums sm:text-4xl">{tile.value}</dd>
               </div>
             ))}
-          </section>
+          </dl>
 
           {/* Most common mistake types */}
-          <section className="polkadot-card flex flex-col gap-4 rounded-2xl p-6">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
-              {t.stats.mostCommon}
-            </h2>
+          <section className="flex flex-col gap-4">
+            <h2 className="font-display text-2xl font-bold">{t.stats.mostCommon}</h2>
             {stats.byType.length === 0 ? (
-              <p className="text-sm text-emerald-300">{t.stats.noErrors}</p>
+              <p className="text-good">{t.stats.noErrors}</p>
             ) : (
-              <ul className="flex flex-col gap-3">
+              <ul className="flex flex-col">
                 {stats.byType.map(({ type, count }) => (
                   <li
                     key={type}
-                    className="grid grid-cols-[minmax(0,10rem)_1fr_auto] items-center gap-3 text-sm sm:grid-cols-[14rem_1fr_auto]"
+                    className="grid grid-cols-[minmax(0,11rem)_1fr_auto] items-center gap-4 border-b border-border py-3 text-sm sm:grid-cols-[15rem_1fr_auto]"
                     title={`${t.errorTypes[type]}: ${fmt(t.stats.errorCount, { n: count })}`}
                   >
-                    <span className="truncate text-neutral-200">{t.errorTypes[type]}</span>
-                    <span className="h-2.5 rounded-full bg-white/5">
-                      <span
-                        className="block h-full rounded-full bg-amber-400"
-                        style={{ width: `${(count / maxTypeCount) * 100}%` }}
-                      />
+                    <span className="truncate">{t.errorTypes[type]}</span>
+                    <span className="h-[3px] bg-text/10">
+                      <span className="block h-full bg-red" style={{ width: `${(count / maxTypeCount) * 100}%` }} />
                     </span>
-                    <span className="font-mono text-xs text-neutral-300">
+                    <span className="font-mono text-xs tabular-nums text-muted-text">
                       {fmt(t.stats.errorCount, { n: count })}
                     </span>
                   </li>
@@ -87,34 +79,35 @@ export function SentenceStatsView({
             )}
           </section>
 
-          {/* Week by week: mistakes per sentence (bar) with the week's numbers beside it */}
-          <section className="polkadot-card flex flex-col gap-4 rounded-2xl p-6">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
-              {t.stats.overTime} · {t.stats.errorsPerSentence}
+          {/* Week by week: mistakes per sentence, with the week's numbers beside it */}
+          <section className="flex flex-col gap-4">
+            <h2 className="font-display text-2xl font-bold">
+              {t.stats.overTime}
+              <span className="label ml-3 font-sans">{t.stats.errorsPerSentence}</span>
             </h2>
-            <ul className="flex flex-col gap-2.5">
+            <ul className="flex flex-col">
               {stats.weeks.map((week) => (
                 <li
                   key={week.weekStart}
-                  className="grid grid-cols-[4.5rem_1fr_auto] items-center gap-3 text-sm sm:grid-cols-[6rem_1fr_auto]"
+                  className="grid grid-cols-[4.5rem_1fr_auto] items-center gap-4 border-b border-border py-2.5 text-sm sm:grid-cols-[6rem_1fr_auto]"
                   title={fmt(t.stats.weekOf, { date: weekLabel(week.weekStart) })}
                 >
-                  <span className="font-mono text-xs text-neutral-400">{weekLabel(week.weekStart)}</span>
-                  <span className="h-2.5 rounded-full bg-white/5">
+                  <span className="font-mono text-xs text-muted-text">{weekLabel(week.weekStart)}</span>
+                  <span className="h-[3px] bg-text/10">
                     {week.errorsPerSentence !== null && (
                       <span
-                        className="block h-full min-w-1 rounded-full bg-sky-400"
+                        className="block h-full min-w-[3px] bg-text"
                         style={{ width: `${(week.errorsPerSentence / maxWeekErrors) * 100}%` }}
                       />
                     )}
                   </span>
-                  <span className="whitespace-nowrap text-right font-mono text-xs text-neutral-300">
+                  <span className="whitespace-nowrap text-right font-mono text-xs tabular-nums">
                     {week.sentences === 0 ? (
-                      t.stats.noActivity
+                      <span className="text-muted-text">{t.stats.noActivity}</span>
                     ) : (
                       <>
                         {perSentence(week.errorsPerSentence)}
-                        <span className="text-neutral-500">
+                        <span className="text-muted-text">
                           {" · "}
                           {fmt(t.stats.weekSummary, { n: week.sentences })} · {pct(week.correctRate)}
                         </span>
