@@ -1,49 +1,59 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, Check, ExternalLink, MousePointerClick, PenLine, Puzzle, Repeat2, Sparkles } from "lucide-react";
+import { Caveat } from "next/font/google";
 import { createClient } from "@/lib/supabase/server";
 import { getI18n } from "@/lib/i18n/server";
-import { lastDayKeys } from "@/lib/dates";
-import { CONTEXTS, GRAMMAR_GOALS } from "@/lib/sentenceTasks";
 import type { Evaluation } from "@/lib/sentenceCheck";
-import type { Word } from "@/lib/types";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { GermanyFlagBlank } from "@/components/GermanyFlagBlank";
-import { StreakHeatmap } from "@/components/StreakHeatmap";
-import { SentenceFeedback, TaskCard } from "@/components/SentenceBuilder";
-import { WordFullCard } from "@/components/WordFullCard";
+import { SentenceFeedback } from "@/components/SentenceBuilder";
+import { CorrectionCard } from "@/components/landing/CorrectionCard";
 
 const GITHUB_URL = "https://github.com/CybTT/lernkarte";
 
+// Handwriting, used only for the learner's words and the red pen.
+const hand = Caveat({ subsets: ["latin", "latin-ext"], weight: ["500", "700"] });
+
 // Link previews and search results are in English, whatever the visitor's language.
 export const metadata: Metadata = {
-  title: "LernKarte — Learn German vocabulary, then use it",
+  title: "LernKarte — Write a sentence with every German word you learn",
   description:
     "A German vocabulary trainer for Turkish speakers (A1–B1): AI-enriched words, spaced repetition, and explained feedback on the sentences you write.",
 };
 
+/*
+ * Design decisions for this page
+ * - Palette from the product: warm ink (#100f0d), index-card paper (#efe9de /
+ *   #f5f0e6), and one accent, the teacher's correction red (#e2462c). The
+ *   flag's gold appears nowhere here; the article colours appear only where
+ *   they carry meaning (der / die / das).
+ * - Type: Playfair Display for headings, Geist for text, Geist Mono for
+ *   numbers and small labels, Caveat only for handwriting.
+ * - One corner radius (3px), lines instead of shadows, left-aligned text,
+ *   no entrance animations. The signature is the corrected index card.
+ */
 export default async function LandingPage() {
   const supabase = await createClient();
-  const [{ data: auth }, { t, locale }] = await Promise.all([supabase.auth.getClaims(), getI18n()]);
+  const [{ data: auth }, { t }] = await Promise.all([supabase.auth.getClaims(), getI18n()]);
   if (auth?.claims?.sub) redirect("/dashboard");
 
   const L = t.landing;
 
-  // Sample data for the live previews below — the app's real components.
-  const heatmap = Object.fromEntries(
-    lastDayKeys(90).map((day, i) => [day, (i * 37) % 11 > 3 ? ((i * 13) % 17) + 1 : 0])
-  );
-  const perfekt = GRAMMAR_GOALS.find((g) => g.id === "perfekt")!;
-  const demoTask = {
-    context: CONTEXTS[5][locale],
-    grammarGoal: { id: perfekt.id, name: perfekt.name, instruction: perfekt.instruction[locale] },
-    words: [
-      { id: "demo-1", term: "Freund", article: "der" as const, meaning_tr: "arkadaş", part_of_speech: "noun" as const },
-      { id: "demo-2", term: "spielen", article: null, meaning_tr: "oynamak", part_of_speech: "verb" as const },
-    ],
-  };
-  const demoSentence = "Ich habe im Urlaub mit meine Freund Fußball gespielt.";
+  const steps = [
+    { title: L.s1Title, body: L.s1Body },
+    { title: L.s2Title, body: L.s2Body },
+    { title: L.s3Title, body: L.s3Body },
+    { title: L.s4Title, body: L.s4Body },
+  ];
+
+  const modes = [
+    { name: t.study.modes.smart, what: L.modeSmart },
+    { name: t.study.modes.flashcard, what: L.modeFlashcard },
+    { name: t.study.modes.typing, what: L.modeTyping },
+    { name: t.study.modes.translate, what: L.modeTranslate },
+    { name: t.sentence.title, what: L.modeSentence },
+  ];
+
   const demoEvaluation: Evaluation = {
     verdict: "major",
     praise: L.demoPraise,
@@ -66,266 +76,221 @@ export default async function LandingPage() {
     grammarGoalMet: true,
     grammarGoalNote: L.demoGoalNote,
   };
-  const demoWord = {
-    id: "demo-word",
-    term: "Feierabend",
-    article: "der",
-    plural: "Feierabende",
-    ipa: "ˈfaɪ̯ɐˌʔaːbn̩t",
-    meaning_tr: "iş çıkışı",
-    meanings_tr: ["mesai sonrası", "akşam dinlenmesi"],
-    meaning_en: "end of the working day",
-    usage_note: "İş çıkışı için günlük konuşmada çok sık kullanılır.",
-    example_de: "Nach dem Feierabend gehe ich oft joggen.",
-    example_tr: "İş çıkışından sonra sık sık koşuya giderim.",
-  } as Word;
 
-  const features = [
-    { icon: Repeat2, title: L.f1Title, body: L.f1Body },
-    { icon: Sparkles, title: L.f2Title, body: L.f2Body },
-    { icon: PenLine, title: L.f3Title, body: L.f3Body },
-    { icon: Puzzle, title: L.f4Title, body: L.f4Body },
-  ];
+  const button =
+    "inline-flex items-center rounded-[3px] bg-[#efe9de] px-5 py-3 text-sm font-semibold text-[#100f0d] transition-colors hover:bg-white";
 
   return (
-    <div className="relative flex min-h-full flex-1 flex-col overflow-x-clip">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-white/5 bg-[#07080a]/70 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <Link href="/" className="flex items-center gap-2.5">
-            <Logo />
-            <span className="font-display text-xl font-bold tracking-tight text-white">LernKarte</span>
+    <div className="flex min-h-full flex-1 flex-col bg-[#100f0d] text-[#efe9de]">
+      <header className="border-b border-[#efe9de]/10">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-4 sm:px-8">
+          <Link href="/" className="flex items-center gap-2.5 rounded-[3px]">
+            <span aria-hidden className="h-3 w-3 rounded-full bg-[#e2462c]" />
+            <span className="font-display text-xl font-bold tracking-tight">LernKarte</span>
           </Link>
-          <nav className="flex items-center gap-2">
-            <LanguageSwitcher />
+          <nav className="flex items-center gap-1 sm:gap-3">
+            <LanguageSwitcher variant="plain" />
             <Link
               href="/login"
-              className="whitespace-nowrap rounded-full px-3 py-2 text-sm font-medium text-neutral-300 transition-colors hover:text-white sm:px-4"
+              className="whitespace-nowrap rounded-[3px] px-2 py-2 text-sm text-[#efe9de]/80 hover:text-[#efe9de]"
             >
               {L.login}
             </Link>
-            <Link
-              href="/login?mode=signup"
-              className="hidden whitespace-nowrap rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#07080a] transition-transform hover:scale-[1.03] sm:block"
-            >
-              {L.getStarted}
+            <Link href="/login?mode=signup" className="hidden whitespace-nowrap rounded-[3px] bg-[#efe9de] px-4 py-2 text-sm font-semibold text-[#100f0d] transition-colors hover:bg-white sm:inline-flex">
+              {L.signup}
             </Link>
           </nav>
         </div>
       </header>
 
       <main className="flex flex-1 flex-col">
-        {/* Hero */}
-        <section className="relative mx-auto flex w-full max-w-6xl flex-col items-center px-4 pb-16 pt-16 text-center sm:px-6 sm:pt-24">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[420px] w-[720px] max-w-full -translate-x-1/2 rounded-full bg-gradient-to-r from-red-600/15 via-amber-400/10 to-transparent blur-3xl"
-          />
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs font-medium text-neutral-300">
-            <FlagDots />
-            {L.eyebrow}
-          </span>
-          <h1 className="mt-6 max-w-4xl font-display text-5xl font-bold leading-[1.05] tracking-tight text-white sm:text-7xl">
-            {L.titleStart}
-            <br />
-            <span className="bg-gradient-to-r from-amber-200 via-amber-400 to-red-500 bg-clip-text text-transparent">
-              {L.titleEnd}
-            </span>
-          </h1>
-          <p className="mt-6 max-w-2xl text-base text-neutral-300 sm:text-lg">{L.lead}</p>
-          {L.altLead && <p className="mt-3 max-w-2xl text-sm italic text-neutral-500">{L.altLead}</p>}
-          <div className="mt-9 flex flex-col items-center gap-3 sm:flex-row">
-            <Link
-              href="/login?mode=signup"
-              className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-semibold text-[#07080a] shadow-[0_0_40px_-10px_rgba(255,204,0,0.6)] transition-transform hover:scale-[1.03]"
-            >
-              {L.getStarted}
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link
-              href="/login"
-              className="rounded-full border border-white/15 bg-white/5 px-7 py-3.5 text-sm font-medium text-white transition-colors hover:bg-white/10"
-            >
-              {L.login}
-            </Link>
-          </div>
-
-          {/* Product preview */}
-          <Preview label={L.sampleScreen} className="mt-16 w-full max-w-3xl">
-            <div className="flex flex-col gap-4 p-4 sm:p-6">
-              <GermanyFlagBlank t={t.flag} realProgress={64} totalWords={148} masteredWords={52} learningWords={96} />
-              <div className="rounded-2xl border border-white/10 bg-[#0d0e12]/80 p-4 text-left sm:p-5">
-                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-400">
-                  {t.dashboard.activity}
-                </p>
-                <StreakHeatmap counts={heatmap} label={t.heatmap.aria} cellLabel={t.heatmap.cell} />
-              </div>
+        {/* 1. Hero: asymmetric, the corrected card on the right */}
+        <section className="mx-auto grid w-full max-w-6xl gap-14 px-5 pb-24 pt-14 sm:px-8 sm:pt-20 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-16">
+          <div>
+            <p className="font-mono text-xs text-[#9c968b]">{L.audience}</p>
+            <h1 className="mt-5 max-w-[15ch] font-display text-[2.7rem] font-bold leading-[1.02] tracking-tight sm:text-6xl lg:text-[4.6rem]">
+              {L.title}
+            </h1>
+            <p className="mt-7 max-w-[56ch] text-lg leading-relaxed text-[#efe9de]/85">{L.lead}</p>
+            <p className="mt-4 max-w-[56ch] text-sm leading-relaxed text-[#9c968b]">{L.altLead}</p>
+            <div className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-4">
+              <Link href="/login?mode=signup" className={button}>
+                {L.signup}
+              </Link>
+              <Link
+                href="/login"
+                className="rounded-[3px] text-sm text-[#efe9de]/80 underline decoration-[#efe9de]/30 underline-offset-4 hover:text-[#efe9de] hover:decoration-[#efe9de]"
+              >
+                {L.haveAccount}
+              </Link>
             </div>
-          </Preview>
-        </section>
-
-        {/* Features */}
-        <section className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">{L.featuresTitle}</h2>
-            <p className="mt-4 text-neutral-400">{L.featuresLead}</p>
           </div>
-          <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {features.map(({ icon: Icon, title, body }) => (
-              <li key={title} className="polkadot-card flex flex-col gap-3 rounded-2xl p-6 transition-transform hover:-translate-y-1">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full border border-amber-400/30 bg-amber-400/10 text-amber-300">
-                  <Icon className="h-5 w-5" />
-                </span>
-                <h3 className="text-base font-semibold text-white">{title}</h3>
-                <p className="text-sm leading-relaxed text-neutral-400">{body}</p>
-              </li>
-            ))}
-          </ul>
+          <div className="lg:rotate-[1.5deg]">
+            <CorrectionCard
+              task={L.cardTask}
+              why={L.cardWhy}
+              hide={L.cardHide}
+              explanation={L.cardExplanation}
+              handClassName={hand.className}
+            />
+          </div>
         </section>
 
-        {/* Spotlight: sentence building */}
-        <section className="mx-auto grid w-full max-w-6xl items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1fr_1.15fr] lg:gap-16">
-          <div className="flex min-w-0 flex-col gap-5">
-            <Eyebrow>{L.sentenceEyebrow}</Eyebrow>
-            <h2 className="font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">{L.sentenceTitle}</h2>
-            <ul className="flex flex-col gap-3">
-              {[L.sentencePoint1, L.sentencePoint2, L.sentencePoint3, L.sentencePoint4].map((point) => (
-                <li key={point} className="flex items-start gap-3 text-neutral-300">
-                  <Check className="mt-1 h-4 w-4 shrink-0 text-emerald-400" />
-                  <span>{point}</span>
+        {/* 2. The path of a word: numbered columns divided by rules, dense */}
+        <section className="border-t border-[#efe9de]/10">
+          <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8">
+            <h2 className="font-display text-2xl font-bold sm:text-3xl">{L.stepsTitle}</h2>
+            <ol className="mt-10 grid gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+              {steps.map((step, i) => (
+                <li
+                  key={step.title}
+                  className="border-t border-[#efe9de]/15 pt-5 sm:pr-8 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0 lg:first:border-l-0 lg:first:pl-0"
+                >
+                  <span className="font-mono text-sm text-[#e2462c]">{String(i + 1).padStart(2, "0")}</span>
+                  <h3 className="mt-2 text-lg font-semibold">{step.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-[#efe9de]/70">{step.body}</p>
                 </li>
               ))}
-            </ul>
-            <p className="flex items-center gap-2 text-sm text-amber-200/80">
-              <MousePointerClick className="h-4 w-4 shrink-0" />
-              {L.sentenceHint}
-            </p>
+            </ol>
           </div>
-          <Preview label={L.sampleScreen} className="min-w-0">
-            <div className="flex flex-col gap-4 p-4 text-left sm:p-5">
-              <TaskCard t={t} task={demoTask} />
+        </section>
+
+        {/* 3. Full-width band, a different tone: the real feedback screen */}
+        <section className="bg-[#18170f]">
+          <div className="mx-auto grid max-w-6xl gap-12 px-5 py-20 sm:px-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
+            <div className="flex min-w-0 flex-col gap-5">
+              <h2 className="font-display text-3xl font-bold leading-tight sm:text-[2.6rem]">
+                {L.demoTitle}
+              </h2>
+              <p className="max-w-[60ch] leading-relaxed text-[#efe9de]/80">{L.demoBody}</p>
+              <p className="max-w-[60ch] border-l-2 border-[#e2462c] pl-4 leading-relaxed text-[#efe9de]/80">
+                {L.demoHonest}
+              </p>
+            </div>
+            <figure className="min-w-0">
               <SentenceFeedback
                 t={t}
-                result={{ sentence: demoSentence, attemptNo: 1, mastery: [] }}
+                result={{
+                  sentence: "Ich habe im Urlaub mit meine Freund Fußball gespielt.",
+                  attemptNo: 1,
+                  mastery: [],
+                }}
                 evaluation={demoEvaluation}
                 final
                 showActions={false}
               />
-            </div>
-          </Preview>
-        </section>
-
-        {/* Spotlight: dictionary */}
-        <section className="mx-auto grid w-full max-w-6xl items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1.15fr_1fr] lg:gap-16">
-          <div className="order-last min-w-0 lg:order-first">
-            <Preview label={L.sampleScreen}>
-              <div className="p-4 text-left sm:p-5">
-                <WordFullCard word={demoWord} />
-              </div>
-            </Preview>
-          </div>
-          <div className="flex min-w-0 flex-col gap-5">
-            <Eyebrow>{L.enrichEyebrow}</Eyebrow>
-            <h2 className="font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">{L.enrichTitle}</h2>
-            <p className="text-neutral-300">{L.enrichBody}</p>
-            <p className="flex items-start gap-3 text-neutral-400">
-              <Puzzle className="mt-1 h-4 w-4 shrink-0 text-amber-300" />
-              <span>{L.f4Body}</span>
-            </p>
+              <figcaption className="mt-3 font-mono text-xs text-[#9c968b]">{L.demoCaption}</figcaption>
+            </figure>
           </div>
         </section>
 
-        {/* Final call to action */}
-        <section className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
-          <div className="polkadot-card relative overflow-hidden rounded-3xl px-6 py-14 text-center sm:px-12">
-            <div aria-hidden className="absolute inset-x-0 top-0 flex h-1">
-              <span className="flex-1 bg-neutral-800" />
-              <span className="flex-1 bg-[#dd0000]" />
-              <span className="flex-1 bg-[#ffcc00]" />
-            </div>
-            <h2 className="font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">{L.finalTitle}</h2>
-            <p className="mt-4 text-neutral-400">{L.finalBody}</p>
-            <Link
-              href="/login?mode=signup"
-              className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-semibold text-[#07080a] transition-transform hover:scale-[1.03]"
+        {/* 4. Breathing room: a dictionary entry set like a printed page */}
+        <section className="mx-auto grid w-full max-w-6xl gap-12 px-5 py-28 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
+          <div className="flex flex-col gap-5">
+            <h2 className="max-w-[18ch] font-display text-3xl font-bold leading-tight sm:text-[2.6rem]">
+              {L.entryTitle}
+            </h2>
+            <p className="max-w-[56ch] leading-relaxed text-[#efe9de]/75">{L.entryBody}</p>
+          </div>
+          <article className="border-t border-[#efe9de]/20 pt-6">
+            <p className={`${hand.className} text-2xl text-[#9c968b]`}>{L.entryTyped}</p>
+            <h3
+              lang="de"
+              className="mt-4 flex flex-wrap items-baseline gap-x-4 font-display text-6xl font-bold sm:text-7xl"
             >
-              {L.getStarted}
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+              <span className="text-3xl text-article-der sm:text-4xl">der</span>
+              Fei·er·abend
+            </h3>
+            <p className="mt-3 font-mono text-sm text-[#9c968b]">-s, -e · [ˈfaɪ̯ɐˌʔaːbn̩t]</p>
+            <ol lang="tr" className="mt-6 flex flex-col gap-1.5 text-lg">
+              <li>
+                <span className="mr-3 font-mono text-sm text-[#9c968b]">1</span>iş çıkışı
+              </li>
+              <li>
+                <span className="mr-3 font-mono text-sm text-[#9c968b]">2</span>mesai sonrası
+              </li>
+              <li lang="en">
+                <span className="mr-3 font-mono text-sm text-[#9c968b]">EN</span>end of the working day
+              </li>
+            </ol>
+            <dl className="mt-6 grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 border-t border-[#efe9de]/10 pt-5 text-sm">
+              <dt className="font-mono text-xs text-[#9c968b]">{L.entryUsageLabel}</dt>
+              <dd lang="tr" className="text-[#efe9de]/80">
+                İş çıkışı için günlük konuşmada çok sık kullanılır.
+              </dd>
+              <dt className="font-mono text-xs text-[#9c968b]">{L.entryExampleLabel}</dt>
+              <dd>
+                <span lang="de" className="italic">
+                  Nach dem Feierabend gehe ich oft joggen.
+                </span>
+                <span lang="tr" className="mt-1 block text-[#efe9de]/60">
+                  İş çıkışından sonra sık sık koşuya giderim.
+                </span>
+              </dd>
+            </dl>
+          </article>
+        </section>
+
+        {/* 5. A dense table */}
+        <section className="border-t border-[#efe9de]/10">
+          <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8">
+            <h2 className="font-display text-2xl font-bold sm:text-3xl">{L.modesTitle}</h2>
+            <table className="mt-8 w-full border-collapse text-left text-sm">
+              <thead>
+                <tr className="border-b border-[#efe9de]/20 font-mono text-xs text-[#9c968b]">
+                  <th scope="col" className="w-[34%] py-2 pr-6 font-normal sm:w-[26%]">
+                    {L.modesColMode}
+                  </th>
+                  <th scope="col" className="py-2 font-normal">
+                    {L.modesColWhat}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {modes.map((mode) => (
+                  <tr key={mode.name} className="border-b border-[#efe9de]/10 align-top">
+                    <th scope="row" className="py-4 pr-6 font-display text-base font-bold sm:text-lg">
+                      {mode.name}
+                    </th>
+                    <td className="max-w-[70ch] py-4 leading-relaxed text-[#efe9de]/75">{mode.what}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
+        </section>
+
+        {/* 6. Closing */}
+        <section className="mx-auto w-full max-w-6xl px-5 pb-28 pt-20 sm:px-8">
+          <h2 className="font-display text-4xl font-bold leading-tight sm:text-6xl">{L.closingTitle}</h2>
+          <p className="mt-4 text-[#efe9de]/70">{L.closingBody}</p>
+          <Link href="/login?mode=signup" className={`${button} mt-8`}>
+            {L.signup}
+          </Link>
         </section>
       </main>
 
-      <footer className="border-t border-white/5">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-neutral-500 sm:flex-row sm:px-6">
-          <div className="flex items-center gap-2.5">
-            <Logo small />
-            <span>{L.builtWith}</span>
+      <footer className="border-t border-[#efe9de]/10">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-5 py-8 text-sm text-[#9c968b] sm:flex-row sm:items-center sm:justify-between sm:px-8">
+          <p className="flex items-center gap-2.5">
+            <span aria-hidden className="h-2 w-2 rounded-full bg-[#e2462c]" />
+            {L.footerBuilt}
+          </p>
+          <div className="flex gap-6">
+            <Link href="/login" className="rounded-[3px] hover:text-[#efe9de]">
+              {L.login}
+            </Link>
+            <a
+              href={GITHUB_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-[3px] hover:text-[#efe9de]"
+            >
+              {L.sourceCode} ↗
+            </a>
           </div>
-          <a
-            href={GITHUB_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1.5 transition-colors hover:text-white"
-          >
-            GitHub
-            <ExternalLink className="h-3.5 w-3.5" />
-          </a>
         </div>
       </footer>
     </div>
-  );
-}
-
-function Logo({ small = false }: { small?: boolean }) {
-  return (
-    <span
-      className={
-        small
-          ? "flex h-5 w-5 items-center justify-center rounded-full border border-white/20 bg-white/10"
-          : "flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-white/10"
-      }
-    >
-      <span className={small ? "h-2 w-2 rounded-full bg-gradient-to-r from-red-500 to-amber-400" : "h-2.5 w-2.5 rounded-full bg-gradient-to-r from-red-500 to-amber-400"} />
-    </span>
-  );
-}
-
-function FlagDots() {
-  return (
-    <span aria-hidden className="flex gap-0.5">
-      <span className="h-1.5 w-1.5 rounded-full bg-neutral-500" />
-      <span className="h-1.5 w-1.5 rounded-full bg-[#dd0000]" />
-      <span className="h-1.5 w-1.5 rounded-full bg-[#ffcc00]" />
-    </span>
-  );
-}
-
-function Eyebrow({ children }: { children: React.ReactNode }) {
-  return <span className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-300">{children}</span>;
-}
-
-/** A browser-window frame around a live sample of the app. */
-function Preview({
-  label,
-  className = "",
-  children,
-}: {
-  label: string;
-  className?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <figure className={`relative ${className}`}>
-      <div className="overflow-hidden rounded-3xl border border-white/10 bg-[#0a0b0e]/90 shadow-[0_40px_120px_-40px_rgba(0,0,0,0.9)]">
-        <div className="flex items-center gap-2 border-b border-white/5 px-4 py-3">
-          <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
-          <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
-          <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
-          <span className="ml-auto text-[10px] font-medium uppercase tracking-wider text-neutral-500">{label}</span>
-        </div>
-        {children}
-      </div>
-    </figure>
   );
 }

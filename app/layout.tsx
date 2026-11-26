@@ -7,17 +7,20 @@ import "./globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
-  subsets: ["latin"],
+  // latin-ext carries Turkish ğ, ş, ı, İ.
+  subsets: ["latin", "latin-ext"],
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
-  subsets: ["latin"],
+  // latin-ext carries Turkish ğ, ş, ı, İ.
+  subsets: ["latin", "latin-ext"],
 });
 
 const playfair = Playfair_Display({
   variable: "--font-serif-display",
-  subsets: ["latin"],
+  // latin-ext carries Turkish ğ, ş, ı, İ.
+  subsets: ["latin", "latin-ext"],
 });
 
 const SITE_URL = "https://lernkartee.vercel.app";
@@ -33,7 +36,7 @@ export async function generateMetadata(): Promise<Metadata> {
       type: "website",
       url: SITE_URL,
       siteName: "LernKarte",
-      title: "LernKarte — Learn German vocabulary, then use it",
+      title: "LernKarte — Write a sentence with every German word you learn",
       description:
         "AI-enriched German vocabulary, spaced repetition, and explained feedback on the sentences you write. For Turkish speakers, A1–B1.",
     },

@@ -8,7 +8,14 @@ import { useI18n } from "@/components/I18nProvider";
 import { cn } from "@/lib/utils";
 
 /** Remembers the chosen language for a year and re-renders the page in it. */
-export function LanguageSwitcher({ className }: { className?: string }) {
+export function LanguageSwitcher({
+  className,
+  variant = "pill",
+}: {
+  className?: string;
+  /** "plain" drops the pill background, for the landing page header. */
+  variant?: "pill" | "plain";
+}) {
   const { locale, t } = useI18n();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -21,7 +28,10 @@ export function LanguageSwitcher({ className }: { className?: string }) {
   return (
     <label
       className={cn(
-        "relative flex h-9 items-center gap-1.5 rounded-full border border-white/10 bg-white/5 pl-2.5 pr-2 text-xs font-medium text-neutral-300 transition-colors hover:bg-white/10 hover:text-white focus-within:border-white/30",
+        "relative flex h-9 items-center gap-1.5 text-xs font-medium transition-colors focus-within:outline focus-within:outline-2 focus-within:outline-offset-2",
+        variant === "pill"
+          ? "rounded-full border border-white/10 bg-white/5 pl-2.5 pr-2 text-neutral-300 hover:bg-white/10 hover:text-white"
+          : "rounded-[3px] px-2 font-mono text-[#9c968b] hover:text-[#efe9de]",
         pending && "opacity-60",
         className
       )}

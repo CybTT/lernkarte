@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, Sun } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/components/I18nProvider";
@@ -67,13 +67,6 @@ export function NavBar() {
         {/* Action Buttons */}
         <div className="flex items-center gap-2">
           <LanguageSwitcher />
-          <button 
-            type="button"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-neutral-400 transition-colors hover:bg-white/10 hover:text-white"
-            aria-label={t.nav.theme}
-          >
-            <Sun className="h-4 w-4" />
-          </button>
           
           <button
             onClick={handleLogout}
