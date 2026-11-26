@@ -79,7 +79,7 @@ export const tr = {
     failed: "Kelime eklenemedi.",
     added: "\"{term}\" eklendi, zenginleştiriliyor…",
     enrichFailed: "\"{term}\" zenginleştirilemedi.",
-    notRecognized: "\"{term}\" bir Almanca kelime olarak tanınmadı — sözlükten düzeltebilirsin.",
+    notRecognized: "\"{term}\" bir Almanca kelime olarak tanınmadı. Sözlükten düzeltebilirsin.",
     corrected: "\"{input}\" → {term} olarak kaydedildi.",
     enriched: "\"{term}\" zenginleştirildi.",
   },
@@ -160,7 +160,7 @@ export const tr = {
   },
   sentence: {
     title: "Cümle Kur",
-    subtitle: "Öğrendiğin kelimelerle Almanca bir cümle yaz; hatalarını nedenleriyle birlikte göstereyim.",
+    subtitle: "Öğrendiğin kelimelerle Almanca bir cümle yaz. Hatalarını nedenleriyle birlikte göstereyim.",
     stats: "Hata istatistiklerim",
     level: "Seviyen",
     situation: "Durum",

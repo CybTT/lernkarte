@@ -60,7 +60,7 @@ export function CorrectionCard({
             </p>
             <p
               aria-hidden
-              className={`${handClassName} pen-write mt-2 -rotate-2 text-right text-2xl font-bold text-red [animation-delay:1300ms]`}
+              className={`${handClassName} pen-write mt-2 -rotate-2 pr-3 text-right text-2xl font-bold text-red [animation-delay:1300ms]`}
             >
               mit + Dativ!
             </p>

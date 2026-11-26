@@ -78,7 +78,7 @@ export const de: Dictionary = {
     failed: "Das Wort konnte nicht hinzugefügt werden.",
     added: "„{term}“ hinzugefügt, wird angereichert…",
     enrichFailed: "„{term}“ konnte nicht angereichert werden.",
-    notRecognized: "„{term}“ wurde nicht als deutsches Wort erkannt — du kannst es im Wörterbuch korrigieren.",
+    notRecognized: "„{term}“ wurde nicht als deutsches Wort erkannt. Du kannst es im Wörterbuch korrigieren.",
     corrected: "„{input}“ wurde als {term} gespeichert.",
     enriched: "„{term}“ angereichert.",
   },
@@ -159,7 +159,7 @@ export const de: Dictionary = {
   },
   sentence: {
     title: "Satzbau",
-    subtitle: "Schreib einen deutschen Satz mit Wörtern, die du gelernt hast — ich zeige dir deine Fehler und warum.",
+    subtitle: "Schreib einen deutschen Satz mit Wörtern, die du gelernt hast. Ich zeige dir deine Fehler und warum.",
     stats: "Meine Fehlerstatistik",
     level: "Dein Niveau",
     situation: "Situation",
@@ -286,7 +286,7 @@ export const de: Dictionary = {
     confirmEmail:
       "Wir haben einen Bestätigungslink an {email} geschickt. Bestätige ihn und melde dich dann an.",
     errInvalid: "E-Mail oder Passwort ist falsch.",
-    errRegistered: "Diese E-Mail ist bereits registriert — versuch dich anzumelden.",
+    errRegistered: "Diese E-Mail ist bereits registriert. Versuch dich anzumelden.",
     errShortPassword: "Das Passwort muss mindestens 6 Zeichen lang sein.",
     errBadEmail: "Ungültige E-Mail-Adresse.",
   },
@@ -294,7 +294,7 @@ export const de: Dictionary = {
     title: "LernKarte-Erweiterung",
     connecting: "Verbindung zur Erweiterung wird hergestellt…",
     connected: "Verbunden.",
-    connectedBody: "Du kannst diesen Tab schließen — die Erweiterung kann jetzt dein Konto nutzen.",
+    connectedBody: "Du kannst diesen Tab schließen. Die Erweiterung kann jetzt dein Konto nutzen.",
     notFound: "Erweiterung nicht gefunden",
     notFoundBody:
       "Stelle sicher, dass die LernKarte-Chrome-Erweiterung installiert und aktiviert ist, und lade diese Seite neu.",
