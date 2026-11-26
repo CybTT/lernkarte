@@ -261,7 +261,6 @@ export const de: Dictionary = {
     modeSentence: "Du schreibst einen eigenen Satz mit den vorgegebenen Wörtern, in der vorgegebenen Situation.",
     closingTitle: "Was wird dein erstes Wort?",
     closingBody: "Das Konto ist kostenlos, Werbung gibt es nicht.",
-    footerBuilt: "Gebaut mit Next.js, Supabase und Claude.",
     sourceCode: "Quellcode",
     demoPraise: "Das Perfekt (habe … gespielt) hast du richtig gebildet.",
     demoExplanation: "„mit“ verlangt immer den Dativ: meinem statt meine.",

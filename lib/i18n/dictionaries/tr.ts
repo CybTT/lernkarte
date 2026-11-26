@@ -262,7 +262,6 @@ export const tr = {
     modeSentence: "Verilen durumda, verilen kelimelerle kendi cümleni kurarsın.",
     closingTitle: "İlk kelimen ne olsun?",
     closingBody: "Hesap açmak ücretsiz, reklam yok.",
-    footerBuilt: "Next.js, Supabase ve Claude ile yapıldı.",
     sourceCode: "Kaynak kod",
     demoPraise: "Perfekt'i (habe … gespielt) doğru kurmuşsun.",
     demoExplanation: "„mit“ her zaman Dativ ister: meine yerine meinem.",

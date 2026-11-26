@@ -265,7 +265,7 @@ export default async function LandingPage() {
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-5 py-8 text-sm text-muted-text sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <p className="flex items-center gap-2.5">
             <span aria-hidden className="h-2 w-2 rounded-full bg-red" />
-            {L.footerBuilt}
+            LernKarte
           </p>
           <div className="flex gap-6">
             <Link href="/login" className="rounded-[3px] hover:text-text">

@@ -259,7 +259,6 @@ export const en: Dictionary = {
     modeSentence: "Write your own sentence with the given words, in the given situation.",
     closingTitle: "What will your first word be?",
     closingBody: "Creating an account is free, and there are no ads.",
-    footerBuilt: "Built with Next.js, Supabase and Claude.",
     sourceCode: "Source code",
     demoPraise: "You built the Perfekt (habe … gespielt) correctly.",
     demoExplanation: "„mit“ always takes the Dativ: meinem instead of meine.",
